@@ -1,0 +1,24 @@
+{
+  "name": "surge-pricing",
+  "version": "0.0.1",
+  "description": "Surge pricing like Uber",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "browserify -t [ babelify --presets [ react ] ] src/index.js -o build/app.js"
+  },
+  "keywords": [
+    "heatmap",
+    "surge",
+    "pricing"
+  ],
+  "author": "Aaditya Thakkar",
+  "license": "ISC",
+  "dependencies": {
+    "babel-preset-react": "^6.5.0",
+    "babelify": "^7.3.0",
+    "heatmap.js": "^2.0.2",
+    "react": "^15.0.2",
+    "react-dom": "^15.0.2"
+  }
+}
