@@ -25,25 +25,21 @@ var Point = React.createClass({
     this.plotGrid();
   },
   plotGrid: function() {
-    var polyCoords = [
-      this.state.up_left,
-      this.state.up_right,
-      this.state.low_right,
-      this.state.low_left
-    ];
-    var heatmap = new google.maps.Polygon({
-      paths: polyCoords,
-      strokeColor: this.state.color,
-      strokeOpacity: 0.8,
-      strokeWeight: 2,
-      fillColor: this.state.color,
-      fillOpacity: 0.15
-    });
-    heatmap.setMap(this.props.map);
+    console.log(this.props.color);
+
+    try {
+        this.props.map.setMap(null);
+    }
+    catch(e) {}
+    // heatmap.setMap(null);
+    setTimeout(function() {
+        this.props.heatmap.setMap(this.props.map);
+    }.bind(this), 2000);
+
   },
 
   render: function() {
-    alert(2);
+    //alert(2);
     return null;
   }
 });

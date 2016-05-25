@@ -5,7 +5,7 @@ var config = require('../config.json');
 module.exports = function supply(){
 
   var timeout = 1000;
-  var num_suppliers = 1;
+  var num_suppliers = 100;
   for(var i=11; i<num_suppliers+11; i++){
       index_into_appbase(i);
   }

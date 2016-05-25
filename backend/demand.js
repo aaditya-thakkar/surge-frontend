@@ -6,7 +6,7 @@ module.exports = function demand(){
 
 
   var timeout = 900;
-  var num_demanders = 1;
+  var num_demanders = 200;
   for(var i=0; i<num_demanders; i++){
     console.log(i);
     index_into_appbase(i);
@@ -30,7 +30,7 @@ module.exports = function demand(){
           body: data
         };
         var added= helper.appbaseRef.index(requestObject).on('data', function(response) {
-          console.log('demand'+i);
+          console.log(response);
         }).on('error', function(error) {
           console.log(error);
         });
