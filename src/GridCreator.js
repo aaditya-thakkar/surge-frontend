@@ -1,4 +1,5 @@
 var HeatmapCreator = require('./HeatmapCreator.js');
+
 module.exports = {
   // constant lat-long offset
   llOffset: 0.00666666666666667*2,

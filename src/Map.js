@@ -4,6 +4,7 @@ var config = require('../config.json');
 var helper = require('./helper.js');
 var GridCreator = require('./GridCreator.js');
 var Evaluator = require('./Evaluator.js');
+var LabelCreator = require('./LabelCreator.js');
 
 // constant lat-long offset
 var llOffset = 0.00666666666666667*2;
@@ -39,7 +40,7 @@ var Map = React.createClass({
             },
             "filter" : {
               "geo_distance" : {
-                "distance" : "200km",
+                "distance" : "20km",
                 "location" : [points[index].long, points[index].lat]
               }
             }
@@ -58,7 +59,7 @@ var Map = React.createClass({
     });
   },
 
-  getDataFromAppbase: function() {}
+  getDataFromAppbase: function() {
     var appbaseRef = helper.appbaseRef;
     for(var i=0; i<this.state.points.length; i++){
       this.appbase_search_stream(appbaseRef,i);
@@ -80,6 +81,7 @@ var Map = React.createClass({
       });
       for (var i=0; i<self.state.points.length; i++) {
         self.state.points[i].heatmap.setMap(self.state.map);
+        LabelCreator.createLabel(self.state.map, self.state.points[i].location, i*70, self.state.points[i].label);
       }
       self.getDataFromAppbase();
     });

@@ -26,10 +26,10 @@ module.exports = {
     }
     //alert(this.points[i].ds_mul);
 
-    if(points[index].surge_price<=2.0){
+    if(points[index].surge_price<=1){
       points[index].color="#0000FF";
     }
-    else if(points[index].surge_price<=3.5){
+    else if(points[index].surge_price<=1.5){
       points[index].color="#00FF00";
     }
     else if(points[index].surge_price<=5.0){
