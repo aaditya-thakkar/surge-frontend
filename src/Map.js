@@ -9,86 +9,69 @@ var LabelCreator = require('./LabelCreator.js');
 // constant lat-long offset
 var llOffset = 0.00666666666666667*2;
 
-var heatmapArray = [];
+// Latitude and Longitude for San Francisco center
+var mapCenterLocation = new google.maps.LatLng(37.7421, -122.4350)
 
+var heatmapArray = [];
+var appbaseRef = helper.appbaseRef;
 var Map = React.createClass({
   getInitialState: function() {
     return ({
-      myParams: {
-        center: new google.maps.LatLng(37.7421, -122.4350),
+      mapParams: {
+        center: mapCenterLocation,
         zoom: 14,
         streetViewControl: true,
         mapTypeId: google.maps.MapTypeId.ROADMAP,
         scaleControl: true
       },
       map: null,
-      points: []
+      gridCenterPoints: []
     });
   },
 
-  appbase_search_stream: function(appbaseRef, i) {
-    var index = i;
-    var self=this;
-    var points = this.state.points;
-    var requestObject = {
-      type: config.appbase.type,
-      body: {
-        "query": {
-          "filtered" : {
-            "query" : {
-              "match_all" : {}
-            },
-            "filter" : {
-              "geo_distance" : {
-                "distance" : "20km",
-                "location" : [points[index].long, points[index].lat]
-              }
-            }
-          }
-        }
-      }
-    };
-    document.body.insertAdjacentHTML("beforeend", "Listening.....")
+  subscribeGridUpdates: function(gridPointsIndex) {
+    var index = gridPointsIndex;
+    var self = this;
+    var gridCenterPoints = this.state.gridCenterPoints;
+    var requestObject = helper.buildRequestObject(gridCenterPoints[index].long, gridCenterPoints[index].lat)
     appbaseRef.searchStream(requestObject).on('data', function(stream) {
-      var detectedPoint= Evaluator.findSurgePrice(stream, points, index);
-      console.log(detectedPoint);
-      self.state.points[detectedPoint.index].heatmap.setOptions({ fillColor:  detectedPoint.points[index].color});
-      self.state.points[detectedPoint.index].heatmap.setOptions({ strokeColor:  detectedPoint.points[index].color});
-
-      console.log(self.state.points[detectedPoint.index].heatmap.strokeColor);
+      var detectedPoint= Evaluator.findSurgePrice(stream, gridCenterPoints, index);
+      gridCenterPoints[detectedPoint.index].heatmap.setOptions({ fillColor:  detectedPoint.gridCenterPoints[index].color});
+      gridCenterPoints[detectedPoint.index].heatmap.setOptions({ strokeColor:  detectedPoint.gridCenterPoints[index].color});
+    }).on('error', function(stream) {
+      console.log(stream)
     });
-  },
-
-  getDataFromAppbase: function() {
-    var appbaseRef = helper.appbaseRef;
-    for(var i=0; i<this.state.points.length; i++){
-      this.appbase_search_stream(appbaseRef,i);
-    }
   },
 
   componentDidMount: function() {
     var self = this;
-    var map = new google.maps.Map(document.getElementById('app'), this.state.myParams);
+    var map = new google.maps.Map(document.getElementById('app'), this.state.mapParams);
+    
     this.setState({
       map: map
     });
 
     google.maps.event.addListenerOnce(map, 'idle', function(){
-      var arr = [];
-      arr = GridCreator.createGridLines(map.getBounds());
-      self.setState({
-        points: arr
-      });
-      for (var i=0; i<self.state.points.length; i++) {
-        self.state.points[i].heatmap.setMap(self.state.map);
-        LabelCreator.createLabel(self.state.map, self.state.points[i].location, i*70, self.state.points[i].label);
+      var gridCenterPointsArray = [];
+      gridCenterPointsArray = GridCreator.createGridLines(map.getBounds());
+      
+      for (var index = 0; index < gridCenterPointsArray.length; index++) {
+        gridCenterPointsArray[index].heatmap.setMap(self.state.map);
+        LabelCreator.createLabel(self.state.map, gridCenterPointsArray[index].location, index*70, gridCenterPointsArray[index].label);
       }
-      self.getDataFromAppbase();
+
+      self.setState({
+        gridCenterPoints: gridCenterPointsArray
+      }, function(){
+        for (var index = 0; index < gridCenterPointsArray.length; index++) {
+          self.subscribeGridUpdates(index);
+        }
+      });
     });
   },
 
   render: function() {
-    return (<div>I shoud be a map</div>);
+    return (<div>Error Displaying the map!</div>);
   }
 });
 
