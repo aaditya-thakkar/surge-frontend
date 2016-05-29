@@ -4,12 +4,12 @@ module.exports = {
   // constant lat-long offset
   llOffset: 0.00666666666666667*2,
 
-  createGridLines: function(bounds) {
-    var arr = [];
-    var north = bounds.getNorthEast().lat();
-    var south = bounds.getSouthWest().lat();
-    var east = bounds.getNorthEast().lng();
-    var west = bounds.getSouthWest().lng();
+  createGridLines: function(mapBounds) {
+    var gridCenterPointsArray = [];
+    var north = mapBounds.getNorthEast().lat();
+    var south = mapBounds.getSouthWest().lat();
+    var east = mapBounds.getNorthEast().lng();
+    var west = mapBounds.getSouthWest().lng();
 
     // define the size of the grid
 
@@ -21,43 +21,42 @@ module.exports = {
 
     for (var latitude = bottomLat; latitude <= topLat; latitude += this.llOffset) {
       for(var longitude = leftLong; longitude<= rightLong; longitude += this.llOffset) {
-        var up_left= {
+        var upLeftCoord= {
           lat: latitude + this.llOffset/2,
           lng: longitude - this.llOffset/2
         };
-        var up_right= {
+        var upRightCoord= {
           lat: latitude + this.llOffset/2,
           lng: longitude + this.llOffset/2
         };
-        var low_left= {
+        var lowLeftCoord= {
           lat: latitude - this.llOffset/2,
           lng: longitude - this.llOffset/2
         };
-        var low_right= {
+        var lowRightCoord= {
           lat: latitude - this.llOffset/2,
           lng: longitude + this.llOffset/2
          };
         var color = "#FFFFFF";
-        // marker points of an area.
-        // console.log("entering");
-        var obj = {
+
+        var gridCenterObject = {
           lat: latitude,
           long: longitude,
           location: new google.maps.LatLng(latitude, longitude),
-          up_left: up_left,
-          up_right: up_right,
-          low_left: low_left,
-          low_right: low_right,
-          surge_price: 0.0,
-          num_d: 0,
-          num_s: 0,
+          upLeftCoord: upLeftCoord,
+          upRightCoord: upRightCoord,
+          lowLeftCoord: lowLeftCoord,
+          lowRightCoord: lowRightCoord,
+          surgePrice: 0.0,
+          numberOfDemanders: 0,
+          numberOfSuppliers: 0,
           color: color,
           label: "A",
-          heatmap: HeatmapCreator.createHeatmap(color,up_left,up_right,low_right,low_left)
+          heatmap: HeatmapCreator.createHeatmap(color, upLeftCoord, upRightCoord, lowRightCoord, lowLeftCoord)
         };
-        arr.push(obj);
+        gridCenterPointsArray.push(gridCenterObject);
       }
     }
-    return arr;
+    return gridCenterPointsArray;
   }
 }
