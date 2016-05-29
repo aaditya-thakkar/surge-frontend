@@ -6,19 +6,20 @@ module.exports = {
 
   createGridLines: function(mapBounds) {
     var gridCenterPointsArray = [];
+
+    // north, south, east, and west coordinates of the map.
     var north = mapBounds.getNorthEast().lat();
     var south = mapBounds.getSouthWest().lat();
     var east = mapBounds.getNorthEast().lng();
     var west = mapBounds.getSouthWest().lng();
 
-    // define the size of the grid
-
+    // defines the size of the grid sides.
     var topLat = Math.ceil(north / this.llOffset) * this.llOffset;
     var rightLong = Math.ceil(east / this.llOffset) * this.llOffset;
-
     var bottomLat = Math.floor(south / this.llOffset) * this.llOffset;
     var leftLong = Math.floor(west / this.llOffset) * this.llOffset;
 
+    // generates each grid's coordinates
     for (var latitude = bottomLat; latitude <= topLat; latitude += this.llOffset) {
       for(var longitude = leftLong; longitude<= rightLong; longitude += this.llOffset) {
         var upLeftCoord= {
@@ -37,8 +38,11 @@ module.exports = {
           lat: latitude - this.llOffset/2,
           lng: longitude + this.llOffset/2
          };
+
+        // initial default color when map loads and grids are created
         var color = "#FFFFFF";
 
+        // grid object representing its center and other properties
         var gridCenterObject = {
           lat: latitude,
           long: longitude,

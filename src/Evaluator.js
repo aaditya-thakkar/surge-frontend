@@ -18,8 +18,10 @@ module.exports = {
       }
     }
 
+    // surge price = number of demanders/number of suppliers
     gridCenterPoints[index].surgePrice = gridCenterPoints[index].numberOfDemanders/gridCenterPoints[index].numberOfSuppliers;
 
+    // corner cases
     if(gridCenterPoints[index].numberOfDemanders != 0 && gridCenterPoints[index].numberOfSuppliers == 0){
       gridCenterPoints[index].surgePrice = 7;
     }
@@ -27,6 +29,7 @@ module.exports = {
       gridCenterPoints[index].surgePrice = 0;
     }
 
+    // colors and labels according to the surge price measures
     if(gridCenterPoints[index].surgePrice <= 1){
       gridCenterPoints[index].color = "#0000FF";
       gridCenterPoints[index].label = "1.0x";
