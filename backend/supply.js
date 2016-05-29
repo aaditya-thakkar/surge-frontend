@@ -1,52 +1,46 @@
-var generator = require('./datagenerator');
+var dataGenerator = require('./datagenerator');
 var helper = require('./helper');
 var config = require('../config.json');
 
-module.exports = function supply(){
-
+module.exports = function DemandGenerator(){
   var timeout = 1000;
-  var num_suppliers = 100;
-  for(var i=11; i<num_suppliers+11; i++){
-      index_into_appbase(i);
+  var numberOfSuppliers = 100;
+  for(var indexI = 0; indexI < numberOfSuppliers; indexI++){
+    enterIntoAppbase(indexI);
   }
-    for(var j=11;j<num_suppliers+11; j++){
-      delete_from_appbase(j);
-    }
+  for(var indexJ = 0; indexJ < numberOfSuppliers; indexJ++){
+    deleteFromAppbase(indexJ);
+  }
+  function enterIntoAppbase(indexI){
+    setTimeout(function() {
+      var latLongData = {
+        object_type: 'demander',
+        location: [parseFloat(dataGenerator.generateLatLong().long), parseFloat(dataGenerator.generateLatLong().lat)]
+      };
 
-    function index_into_appbase(i){
-      setTimeout(function() {
-        // initializing data
-        var data = {
-          object_type: 'supplier',
-          location: [parseFloat(generator.generateLatLong().long), parseFloat(generator.generateLatLong().lat)]
-        };
-        console.log(data)
-        // indexing data
-        var requestObject = {
-          type: config.appbase.type,
-          id: i.toString(),
-          body: data
-        };
+      var requestObject = {
+        type: config.appbase.type,
+        id: indexI.toString(),
+        body: latLongData
+      };
 
-        helper.appbaseRef.index(requestObject).on('data', function(response) {
-          console.log('supply');
-        }).on('error', function(error) {
-          console.log(error);
-        });
-      }, i*timeout);
-    }
-
-    function delete_from_appbase(j){
-      setTimeout(function() {
-        var deleted= helper.appbaseRef.delete({
-          type: config.appbase.type,
-          id: j.toString()
-        }).on('data', function(response) {
-          console.log('supply deleted');
-        }).on('error', function(error) {
-          console.log(error);
-        });
-      },5*j*timeout);
-    }
-
+      var addedSupply = helper.appbaseRef.index(requestObject).on('data', function(response) {
+        console.log(response);
+      }).on('error', function(error) {
+        console.log(error);
+      });
+    }, indexI*timeout);
+  }
+  function deleteFromAppbase (indexJ) {
+    setTimeout(function() {
+      var deletedSupply = helper.appbaseRef.delete({
+        type: config.appbase.type,
+        id: indexJ.toString()
+      }).on('data', function(response) {
+        console.log(response);
+      }).on('error', function(error) {
+        console.log(error);
+      });
+    },5*indexJ*timeout);
+  }
 };

@@ -1,12 +1,12 @@
 const http = require('http');
-var demand = require('./demand');
-var supply = require('./supply');
+var generateDemanders = require('./demand');
+var generateSuppliers = require('./supply');
 const server = http.createServer(function (req, res) {
   res.end();
   console.log("started");
 });
-demand();
-supply();
+generateDemanders();
+generateSuppliers();
 server.on('clientError', function (err, socket) {
   socket.end('HTTP/1.1 400 Bad Request\r\n\r\n');
 });
