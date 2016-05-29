@@ -1,4 +1,5 @@
 module.exports = {
+  // latitude longitude value precision
   MAX_PRECISION: 4,
   // map bounds - san Francisco
   leftLong: -122.49333333333338,
@@ -6,6 +7,7 @@ module.exports = {
   bottomLat: 37.706666666666685,
   topLat: 37.77333333333335,
 
+  // random latitude longitude generator
   generateLatLong: function() {
     var randomLong = this.getRandomInRange(this.leftLong, this.rightLong, this.MAX_PRECISION);
     var randomLat = this.getRandomInRange(this.bottomLat, this.topLat, this.MAX_PRECISION);
@@ -16,6 +18,7 @@ module.exports = {
     return latLong;
   },
 
+  // random generator in a given range of coordinates
   getRandomInRange: function(from, to, fixed) {
     return ((Math.random() * (to - from) + from).toFixed(fixed));
   }
