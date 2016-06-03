@@ -6,11 +6,8 @@ var GridCreator = require('./GridCreator.js');
 var Evaluator = require('./Evaluator.js');
 var LabelCreator = require('./LabelCreator.js');
 
-// constant lat-long offset
-var llOffset = 0.00666666666666667*2;
-
 // Latitude and Longitude for San Francisco center
-var mapCenterLocation = new google.maps.LatLng(37.7421, -122.4350)
+var mapCenterLocation = new google.maps.LatLng(37.7421, -122.4450);
 
 var appbaseRef = helper.appbaseRef;
 var Map = React.createClass({
@@ -51,7 +48,7 @@ var Map = React.createClass({
     var self = this;
     // push the map on the DOM
     var map = new google.maps.Map(document.getElementById('app'), this.state.mapParams);
-
+    map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].push(document.getElementById('over_map'));
     this.setState({
       map: map
     });
@@ -63,7 +60,7 @@ var Map = React.createClass({
 
       for (var index = 0; index < gridCenterPointsArray.length; index++) {
         gridCenterPointsArray[index].heatmap.setMap(self.state.map);
-        LabelCreator.createLabel(self.state.map, gridCenterPointsArray[index].location, index*70, gridCenterPointsArray[index].label);
+        //LabelCreator.createLabel(self.state.map, gridCenterPointsArray[index].location, index*70, gridCenterPointsArray[index].label);
       }
 
       // sets the state of grid array and in the callback, calls for the updates heppening in the grids

@@ -13,7 +13,7 @@
     "pricing"
   ],
   "author": "Aaditya Thakkar",
-  "license": "ISC",
+  "license": "MIT",
   "dependencies": {
     "appbase-js": "^0.10.7",
     "browserify": "^13.0.1",

@@ -2,7 +2,7 @@ var HeatmapCreator = require('./HeatmapCreator.js');
 
 module.exports = {
   // constant lat-long offset
-  llOffset: 0.00666666666666667*2,
+  llOffset: 0.00666666666666667*1.5,
 
   createGridLines: function(mapBounds) {
     var gridCenterPointsArray = [];
