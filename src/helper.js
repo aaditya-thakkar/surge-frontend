@@ -8,7 +8,7 @@ module.exports = {
     username: config.appbase.username,
     password: config.appbase.password
   }),
-  
+
   // returns geo distance query object
   buildRequestObject: function(long, lat) {
     return ({

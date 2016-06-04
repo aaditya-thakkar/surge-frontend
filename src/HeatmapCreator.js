@@ -1,6 +1,6 @@
 module.exports ={
 
-  createHeatmap: function(color, upLeftCoord, upRightCoord, lowRightCoord, lowLeftCoord) {
+  createHeatmap: function(opacity, color, upLeftCoord, upRightCoord, lowRightCoord, lowLeftCoord) {
 
     // bounds for the heatmap polygon
     var polyCoords = [
@@ -14,10 +14,10 @@ module.exports ={
     var heatmapProps = new google.maps.Polygon({
       paths: polyCoords,
       strokeColor: color,
-      strokeOpacity: 0.8,
+      strokeOpacity: opacity,
       strokeWeight: 2,
       fillColor: color,
-      fillOpacity: 0.15
+      fillOpacity: opacity
     });
     return heatmapProps;
   }

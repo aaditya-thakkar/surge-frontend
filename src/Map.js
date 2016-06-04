@@ -7,8 +7,8 @@ var Evaluator = require('./Evaluator.js');
 var LabelCreator = require('./LabelCreator.js');
 
 // Latitude and Longitude for San Francisco center
-var mapCenterLocation = new google.maps.LatLng(37.7421, -122.4450);
-
+var mapCenterLocation = new google.maps.LatLng(37.7441, -122.4450);
+var markersArray = [];
 var appbaseRef = helper.appbaseRef;
 var Map = React.createClass({
   getInitialState: function() {
@@ -18,13 +18,25 @@ var Map = React.createClass({
         center: mapCenterLocation,
         zoom: 14,
         streetViewControl: true,
-        mapTypeId: google.maps.MapTypeId.ROADMAP,
+        mapTypeId: google.maps.MapTypeId.HYBRID,
         scaleControl: true
       },
       map: null,
       // array to store the center locations of each grid the map is divided into
       gridCenterPoints: []
     });
+  },
+  setMapOnAll: function(map) {
+    for (var i = 0; i < markersArray.length; i++) {
+      markersArray[i].setMap(map);
+    }
+  },
+  clearMarkers: function() {
+    this.setMapOnAll(null);
+  },
+
+  showMarkers: function() {
+    this.setMapOnAll(this.state.map);
   },
 
   // stream the updates happening in the grid, i.e new demander comes, new suppiler comes, etc. and according to new surge price change the color of grid heatmap
@@ -37,11 +49,43 @@ var Map = React.createClass({
     // appbase search stream query
     appbaseRef.searchStream(requestObject).on('data', function(stream) {
       var detectedPoint= Evaluator.findSurgePrice(stream, gridCenterPoints, index);
+      var marker = new google.maps.Marker({
+        position: new google.maps.LatLng(stream._source.location[1], stream._source.location[0]),
+      });
+      markersArray.push(marker);
+      //marker.setMap(self.state.map);
+
       gridCenterPoints[detectedPoint.index].heatmap.setOptions({ fillColor:  detectedPoint.gridCenterPoints[index].color});
       gridCenterPoints[detectedPoint.index].heatmap.setOptions({ strokeColor:  detectedPoint.gridCenterPoints[index].color});
+      gridCenterPoints[detectedPoint.index].heatmap.setOptions({ strokeOpacity:  detectedPoint.gridCenterPoints[index].opacity});
+      gridCenterPoints[detectedPoint.index].heatmap.setOptions({ fillOpacity:  detectedPoint.gridCenterPoints[index].opacity});
     }).on('error', function(stream) {
       console.log(stream)
     });
+  },
+
+  createShowMarkerButton: function() {
+    var self = this;
+    var showButton = document.createElement("input");
+    showButton.type = "button";
+    showButton.value = "show markers";
+    showButton.onclick = function(){
+      self.showMarkers();
+    };
+    var foo = document.getElementById("floating-panel");
+    foo.appendChild(showButton);
+  },
+
+  createHideMarkerButton: function() {
+    var self = this;
+    var HideButton = document.createElement("input");
+    HideButton.type = "button";
+    HideButton.value = "hide markers";
+    HideButton.onclick = function(){
+      self.clearMarkers();
+    };
+    var foo = document.getElementById("floating-panel");
+    foo.appendChild(HideButton);
   },
 
   componentDidMount: function() {
@@ -52,6 +96,8 @@ var Map = React.createClass({
     this.setState({
       map: map
     });
+    this.createShowMarkerButton();
+    this.createHideMarkerButton();
 
     // triggers gridcreator, labelcreator, heatmapcreator when the map is in idle state
     google.maps.event.addListenerOnce(map, 'idle', function(){

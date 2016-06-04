@@ -30,21 +30,21 @@ module.exports = {
     }
 
     // colors and labels according to the surge price measures
-    if(gridCenterPoints[index].surgePrice <= 1){
-      gridCenterPoints[index].color = "#0000FF";
-      gridCenterPoints[index].label = "1.0x";
+    if(gridCenterPoints[index].surgePrice <= 1.0){
+      gridCenterPoints[index].color = "#00ffffff";
+      gridCenterPoints[index].opacity = 0.0;
     }
     else if(gridCenterPoints[index].surgePrice <= 1.5){
-      gridCenterPoints[index].color = "#00FF00";
-      gridCenterPoints[index].label = "1.5x";
+      gridCenterPoints[index].color = "#ec891d";
+      gridCenterPoints[index].opacity = 0.35;
     }
     else if(gridCenterPoints[index].surgePrice <= 4.0){
-      gridCenterPoints[index].color = "#FFFF00";
-      gridCenterPoints[index].label = "2.0x";
+      gridCenterPoints[index].color = "#ff0000";
+      gridCenterPoints[index].opacity = 0.35;
     }
     else{
-      gridCenterPoints[index].color = "#FF0000";
-      gridCenterPoints[index].label = "2.5x";
+      gridCenterPoints[index].color = "#4c0000";
+      gridCenterPoints[index].opacity = 0.35;
     }
 
     return ({

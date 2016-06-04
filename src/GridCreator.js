@@ -20,8 +20,12 @@ module.exports = {
     var leftLong = Math.floor(west / this.llOffset) * this.llOffset;
 
     // generates each grid's coordinates
-    for (var latitude = bottomLat; latitude <= topLat; latitude += this.llOffset) {
-      for(var longitude = leftLong; longitude<= rightLong; longitude += this.llOffset) {
+    for (var latitude = bottomLat; latitude <= topLat+3*this.llOffset; latitude += this.llOffset) {
+      if(latitude>=topLat+this.llOffset){
+        leftLong+=2*this.llOffset;
+        rightLong-=this.llOffset;
+      }
+      for(var longitude = leftLong+this.llOffset; longitude<= rightLong; longitude += this.llOffset) {
         var upLeftCoord= {
           lat: latitude + this.llOffset/2,
           lng: longitude - this.llOffset/2
@@ -40,7 +44,8 @@ module.exports = {
          };
 
         // initial default color when map loads and grids are created
-        var color = "#FFFFFF";
+        var color = "#00ffffff";
+        var opacity = 0.0;
 
         // grid object representing its center and other properties
         var gridCenterObject = {
@@ -55,8 +60,9 @@ module.exports = {
           numberOfDemanders: 0,
           numberOfSuppliers: 0,
           color: color,
+          opacity: opacity,
           label: "A",
-          heatmap: HeatmapCreator.createHeatmap(color, upLeftCoord, upRightCoord, lowRightCoord, lowLeftCoord)
+          heatmap: HeatmapCreator.createHeatmap(opacity, color, upLeftCoord, upRightCoord, lowRightCoord, lowLeftCoord)
         };
         gridCenterPointsArray.push(gridCenterObject);
       }
