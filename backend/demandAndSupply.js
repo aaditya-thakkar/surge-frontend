@@ -37,7 +37,6 @@ module.exports = function demandAndSupplyGenerator(){
         type: config.appbase.type,
         id: index.toString(),
         body: latLongData,
-        "_ttl": "10m"
       };
       // appbase index query
       var addedDemand = helper.appbaseRef.index(requestObject).on('data', function(response) {

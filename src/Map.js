@@ -8,7 +8,8 @@ var LabelCreator = require('./LabelCreator.js');
 
 // Latitude and Longitude for San Francisco center
 var mapCenterLocation = new google.maps.LatLng(37.7441, -122.4450);
-var markersArray = [];
+var demandersArray = [];
+var suppliersArray = [];
 var appbaseRef = helper.appbaseRef;
 var Map = React.createClass({
   getInitialState: function() {
@@ -27,8 +28,11 @@ var Map = React.createClass({
     });
   },
   setMapOnAll: function(map) {
-    for (var i = 0; i < markersArray.length; i++) {
-      markersArray[i].setMap(map);
+    for (var i = 0; i < demandersArray.length; i++) {
+      demandersArray[i].setMap(map);
+    }
+    for (var j = 0; j < suppliersArray.length; j++) {
+      suppliersArray[j].setMap(map);
     }
   },
   clearMarkers: function() {
@@ -49,10 +53,21 @@ var Map = React.createClass({
     // appbase search stream query
     appbaseRef.searchStream(requestObject).on('data', function(stream) {
       var detectedPoint= Evaluator.findSurgePrice(stream, gridCenterPoints, index);
-      var marker = new google.maps.Marker({
-        position: new google.maps.LatLng(stream._source.location[1], stream._source.location[0]),
-      });
-      markersArray.push(marker);
+
+      if(stream._source.object_type == "demander") {
+        var marker = new google.maps.Marker({
+          position: new google.maps.LatLng(stream._source.location[1], stream._source.location[0]),
+          label: "D"
+        });
+        demandersArray.push(marker);
+      }
+      else {
+        var marker = new google.maps.Marker({
+          position: new google.maps.LatLng(stream._source.location[1], stream._source.location[0]),
+          label: 'S'
+        });
+        suppliersArray.push(marker);
+      }
       //marker.setMap(self.state.map);
 
       gridCenterPoints[detectedPoint.index].heatmap.setOptions({ fillColor:  detectedPoint.gridCenterPoints[index].color});
@@ -68,7 +83,8 @@ var Map = React.createClass({
     var self = this;
     var showButton = document.createElement("input");
     showButton.type = "button";
-    showButton.value = "show markers";
+    showButton.value = "show demanders and suppliers";
+    showButton.className = "btn btn-primary";
     showButton.onclick = function(){
       self.showMarkers();
     };
@@ -80,7 +96,8 @@ var Map = React.createClass({
     var self = this;
     var HideButton = document.createElement("input");
     HideButton.type = "button";
-    HideButton.value = "hide markers";
+    HideButton.value = "hide demanders and suppliers";
+    HideButton.className = "btn btn-danger";
     HideButton.onclick = function(){
       self.clearMarkers();
     };

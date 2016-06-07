@@ -10,24 +10,24 @@ body {
   font-family: sans-serif;
 }
 #over_map {
-    background: white;
-    padding: 10px;
-  }
+  background-color: #e1e1e1;
+  padding: 10px;
+  border: 1px solid #ff0000;
+  border-radius: 8px;
+}
 #app {
   height: 100%;
 }
 #floating-panel {
-        position: absolute;
-        bottom: 15px;
-        left: 5%;
-        z-index: 5;
-        background-color: #fff;
-        padding: 5px;
-        border: 1px solid #999;
-        text-align: center;
-        font-family: 'Roboto','sans-serif';
-        line-height: 30px;
-        padding-left: 10px;
+  position: absolute;
+  top: 25px;
+  left: 32%;
+  z-index: 5;
+  padding: 5px;
+  text-align: center;
+  font-family: 'Roboto','sans-serif';
+  line-height: 30px;
+  padding-left: 10px;
 }
 h1 {
   position: absolute;

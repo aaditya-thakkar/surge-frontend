@@ -5,7 +5,6 @@ const server = http.createServer(function (req, res) {
   res.end();
   console.log("started");
 });
-
 generateDemandersAndSuppliers();
 
 server.on('clientError', function (err, socket) {
