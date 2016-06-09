@@ -4,7 +4,7 @@ module.exports = {
   // constant lat-long offset
   llOffset: 0.00666666666666667*1.5,
 
-  createGridLines: function(mapBounds) {
+  createGridLines: function(mapBounds, opacity) {
     var gridCenterPointsArray = [];
 
     // north, south, east, and west coordinates of the map.
@@ -41,11 +41,11 @@ module.exports = {
         var lowRightCoord= {
           lat: latitude - this.llOffset/2,
           lng: longitude + this.llOffset/2
-         };
+        };
 
         // initial default color when map loads and grids are created
         var color = "#00ffffff";
-        var opacity = 0.0;
+        var opacity = opacity;
 
         // grid object representing its center and other properties
         var gridCenterObject = {

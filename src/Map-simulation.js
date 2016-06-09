@@ -10,7 +10,7 @@ var mapCenterLocation = new google.maps.LatLng(37.7441, -122.4450);
 var demandersArray = [];
 var suppliersArray = [];
 var appbaseRef = helper.appbaseRef;
-var Map = React.createClass({
+var MapSim = React.createClass({
   getInitialState: function() {
     return ({
       // initial map parameters
@@ -37,44 +37,43 @@ var Map = React.createClass({
     // appbase search stream query
     appbaseRef.searchStream(requestObject).on('data', function(stream) {
       var detectedPoint= Evaluator.findSurgePrice(stream, gridCenterPoints, index);
+      var marker = null;
+      if(stream._source.object_type == "demander") {
+        marker = new google.maps.Marker({
+          position: new google.maps.LatLng(stream._source.location[1], stream._source.location[0]),
+          label: "D",
+        });
+      }
+      else {
+        marker = new google.maps.Marker({
+          position: new google.maps.LatLng(stream._source.location[1], stream._source.location[0]),
+          label: 'S'
+        });
+      }
+      if (stream._deleted == true){
+        marker.setMap(null);
+      }
+      else {
+        marker.setMap(self.state.map);
+      }
 
-      gridCenterPoints[detectedPoint.index].heatmap.setOptions({ fillColor:  detectedPoint.gridCenterPoints[index].color});
-      gridCenterPoints[detectedPoint.index].heatmap.setOptions({ strokeColor:  detectedPoint.gridCenterPoints[index].color});
-      gridCenterPoints[detectedPoint.index].heatmap.setOptions({ strokeOpacity:  detectedPoint.gridCenterPoints[index].opacity});
-      gridCenterPoints[detectedPoint.index].heatmap.setOptions({ fillOpacity:  detectedPoint.gridCenterPoints[index].opacity});
     }).on('error', function(stream) {
       console.log(stream)
     });
-  },
-
-  createShowSimulationButton: function() {
-    var self = this;
-    var showButton = document.createElement("input");
-    showButton.type = "button";
-    showButton.value = "Show Simulation";
-    showButton.className = "btn btn-primary";
-    showButton.onclick = function(){
-      var win = window.open('simulation.html', '_blank');
-      win.focus();
-    };
-    var foo = document.getElementById("floating-panel");
-    foo.appendChild(showButton);
   },
 
   componentDidMount: function() {
     var self = this;
     // push the map on the DOM
     var map = new google.maps.Map(document.getElementById('app'), this.state.mapParams);
-    map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].push(document.getElementById('over_map'));
     this.setState({
       map: map
     });
-    this.createShowSimulationButton();
 
-    // triggers gridcreator and heatmapcreator when the map is in idle state
+    // triggers gridcreator, labelcreator, heatmapcreator when the map is in idle state
     google.maps.event.addListenerOnce(map, 'idle', function(){
       var gridCenterPointsArray = [];
-      gridCenterPointsArray = GridCreator.createGridLines(map.getBounds(), 0);
+      gridCenterPointsArray = GridCreator.createGridLines(map.getBounds(), 0.5);
 
       for (var index = 0; index < gridCenterPointsArray.length; index++) {
         gridCenterPointsArray[index].heatmap.setMap(self.state.map);
@@ -96,4 +95,4 @@ var Map = React.createClass({
   }
 });
 
-module.exports = Map;
+module.exports = MapSim;
