@@ -15,10 +15,6 @@ request({
         "location": {
           "type": "geo_point"
         }
-      },
-      "_ttl": {
-        "enabled": true,
-        "default": "10s"
       }
     }
   },

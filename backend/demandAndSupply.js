@@ -5,19 +5,24 @@ var config = require('../config.json');
 module.exports = function demandAndSupplyGenerator(){
   // timeout for a new demand after one is generated
   var timeout = 1000;
-  var maxNumberOfNodes = 200;
-
+  var maxNumberOfNodes = 1000;
+  var indexArray = [];
   for (var index = 0; index < maxNumberOfNodes; index++){
     var weight = Math.random();
     if(weight>0.5){
       enterIntoAppbase(index, 'demander');
+      indexArray.push(index);
     }
     else {
       enterIntoAppbase(index, 'supplier');
+      indexArray.push(index);
     }
-    if(index > 50){
-      deleteFromAppbase(index-50);
-    }
+    setTimeout(function() {
+      deleteFromAppbase(indexArray[0]);
+      indexArray.splice(0,1);
+    },index*1000);
+
+
   }
 
   // enter demander's location into appbase table

@@ -21,7 +21,7 @@ module.exports = {
             },
             "filter": {
               "geo_distance": {
-                "distance": "20km",
+                "distance": "10km",
                 "location": [long, lat]
               }
             }

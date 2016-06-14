@@ -7,8 +7,7 @@ var Evaluator = require('./Evaluator.js');
 
 // Latitude and Longitude for San Francisco center
 var mapCenterLocation = new google.maps.LatLng(37.7441, -122.4450);
-var demandersArray = [];
-var suppliersArray = [];
+var markersArray = [];
 var appbaseRef = helper.appbaseRef;
 var MapSim = React.createClass({
   getInitialState: function() {
@@ -36,7 +35,7 @@ var MapSim = React.createClass({
 
     // appbase search stream query
     appbaseRef.searchStream(requestObject).on('data', function(stream) {
-      var detectedPoint= Evaluator.findSurgePrice(stream, gridCenterPoints, index);
+      //var detectedPoint= Evaluator.findSurgePrice(stream, gridCenterPoints, index);
       var marker = null;
       if(stream._source.object_type == "demander") {
         marker = new google.maps.Marker({
@@ -51,10 +50,12 @@ var MapSim = React.createClass({
         });
       }
       if (stream._deleted == true){
-        marker.setMap(null);
+        markersArray[0].setMap(null);
+        markersArray.splice(0,1);
       }
       else {
         marker.setMap(self.state.map);
+        markersArray.push(marker);
       }
 
     }).on('error', function(stream) {
