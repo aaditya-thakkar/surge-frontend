@@ -35000,7 +35000,7 @@ React.createClass({
     );
   }
 });
-console.log(window.location.pathname);
+//console.log(window.location.pathname);
 if (window.location.pathname == "/index.html") {
   ReactDOM.render(React.createElement(Map, null), document.getElementById('app'));
 } else {
