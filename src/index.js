@@ -12,7 +12,8 @@ React.createClass({
     return <div className={this.props.className}>foo</div>;
   }
 });
-if(window.location.href == "http://localhost:3001/index.html"){
+//console.log(window.location.pathname);
+if(window.location.pathname == "/index.html"){
   ReactDOM.render(
     <Map />,
     document.getElementById('app')
