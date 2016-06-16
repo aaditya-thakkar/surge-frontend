@@ -35001,9 +35001,9 @@ React.createClass({
   }
 });
 //console.log(window.location.pathname);
-if (window.location.pathname == "/index.html") {
+if (window.location.pathname == "/surge-frontend/index.html") {
   ReactDOM.render(React.createElement(Map, null), document.getElementById('app'));
-} else {
+} else if (window.location.pathname == "/surge-frontend/simulation.html") {
   ReactDOM.render(React.createElement(MapSim, null), document.getElementById('app'));
 }
 
