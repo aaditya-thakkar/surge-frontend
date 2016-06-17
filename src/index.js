@@ -13,13 +13,13 @@ React.createClass({
   }
 });
 //console.log(window.location.pathname);
-if(window.location.pathname == "/index.html"){
+if(window.location.pathname == "/surge-frontend/index.html"){
   ReactDOM.render(
     <Map />,
     document.getElementById('app')
   );
 }
-else if (window.location.pathname == "/simulation.html"){
+else if (window.location.pathname == "/surge-frontend/simulation.html"){
   ReactDOM.render(
     <MapSim />,
     document.getElementById('app')
