@@ -30,15 +30,15 @@ module.exports = {
     }
 
     // colors and labels according to the surge price measures
-    if(gridCenterPoints[index].surgePrice <= 1.0){
+    if(gridCenterPoints[index].surgePrice <= 0.6){
       gridCenterPoints[index].color = "#00ffffff";
       gridCenterPoints[index].opacity = 0.0;
     }
-    else if(gridCenterPoints[index].surgePrice <= 1.5){
+    else if(gridCenterPoints[index].surgePrice <= 0.75){
       gridCenterPoints[index].color = "#ec891d";
       gridCenterPoints[index].opacity = 0.35;
     }
-    else if(gridCenterPoints[index].surgePrice <= 4.0){
+    else if(gridCenterPoints[index].surgePrice <= 2.0){
       gridCenterPoints[index].color = "#ff0000";
       gridCenterPoints[index].opacity = 0.35;
     }

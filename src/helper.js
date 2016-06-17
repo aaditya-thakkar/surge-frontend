@@ -28,6 +28,17 @@ module.exports = {
           }
         }
       }
-    })
+    });
+  },
+
+  buildRequestMarkerObject: function(){
+    return ({
+      type: config.appbase.type,
+      body: {
+        "query": {
+          "match_all": {}
+        }
+      }
+    });
   }
 };

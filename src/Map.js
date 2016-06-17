@@ -9,6 +9,7 @@ var Evaluator = require('./Evaluator.js');
 var mapCenterLocation = new google.maps.LatLng(37.7441, -122.4450);
 var demandersArray = [];
 var suppliersArray = [];
+var gridCenterPointsArray = [];
 var appbaseRef = helper.appbaseRef;
 var Map = React.createClass({
   getInitialState: function() {
@@ -61,6 +62,21 @@ var Map = React.createClass({
     foo.appendChild(showButton);
   },
 
+  startWhereStopped: function(map, gridCenterPointsArray, index) {
+    var requestObject = helper.buildRequestObject(gridCenterPointsArray[index].long, gridCenterPointsArray[index].lat);
+    appbaseRef.search(requestObject).on('data', function(stream) {
+      for(var h = 0; h < stream.hits.total; h++){
+        var detectedPoint= Evaluator.findSurgePrice(stream.hits.hits[h], gridCenterPointsArray, index);
+        gridCenterPointsArray[detectedPoint.index].heatmap.setOptions({ fillColor:  detectedPoint.gridCenterPoints[index].color});
+        gridCenterPointsArray[detectedPoint.index].heatmap.setOptions({ strokeColor:  detectedPoint.gridCenterPoints[index].color});
+        gridCenterPointsArray[detectedPoint.index].heatmap.setOptions({ strokeOpacity:  detectedPoint.gridCenterPoints[index].opacity});
+        gridCenterPointsArray[detectedPoint.index].heatmap.setOptions({ fillOpacity:  detectedPoint.gridCenterPoints[index].opacity});
+      }
+    }).on('error', function(stream) {
+      console.log(stream)
+    });
+  },
+
   componentDidMount: function() {
     var self = this;
     // push the map on the DOM
@@ -69,16 +85,27 @@ var Map = React.createClass({
     this.setState({
       map: map
     });
+
     this.createShowSimulationButton();
 
     // triggers gridcreator and heatmapcreator when the map is in idle state
     google.maps.event.addListenerOnce(map, 'idle', function(){
-      var gridCenterPointsArray = [];
+
       gridCenterPointsArray = GridCreator.createGridLines(map.getBounds(), 0);
 
       for (var index = 0; index < gridCenterPointsArray.length; index++) {
-        gridCenterPointsArray[index].heatmap.setMap(self.state.map);
+        self.startWhereStopped(map, gridCenterPointsArray, index);
       }
+
+      setTimeout(function(){
+        console.log("setting heatmap");
+        for (var index = 0; index < gridCenterPointsArray.length; index++) {
+          console.log(gridCenterPointsArray[index]);
+
+          gridCenterPointsArray[index].heatmap.setMap(self.state.map);
+        }
+      },10000);
+      console.log("heatmap set");
 
       // sets the state of grid array and in the callback, calls for the updates heppening in the grids
       self.setState({

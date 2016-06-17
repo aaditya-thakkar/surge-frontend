@@ -8,6 +8,7 @@ var Evaluator = require('./Evaluator.js');
 // Latitude and Longitude for San Francisco center
 var mapCenterLocation = new google.maps.LatLng(37.7441, -122.4450);
 var markersArray = [];
+var gridCenterPointsArray = [];
 var appbaseRef = helper.appbaseRef;
 var MapSim = React.createClass({
   getInitialState: function() {
@@ -27,14 +28,12 @@ var MapSim = React.createClass({
   },
 
   // stream the updates happening in the grid, i.e new demander comes, new suppiler comes, etc. and according to new surge price change the color of grid heatmap
-  subscribeGridUpdates: function(gridPointsIndex) {
-    var index = gridPointsIndex;
+  subscribeGridUpdates: function() {
     var self = this;
-    var gridCenterPoints = this.state.gridCenterPoints;
-    var requestObject = helper.buildRequestObject(gridCenterPoints[index].long, gridCenterPoints[index].lat)
+    var requestMarkerObject = helper.buildRequestMarkerObject()
 
     // appbase search stream query
-    appbaseRef.searchStream(requestObject).on('data', function(stream) {
+    appbaseRef.searchStream(requestMarkerObject).on('data', function(stream) {
       //var detectedPoint= Evaluator.findSurgePrice(stream, gridCenterPoints, index);
       var marker = null;
       if(stream._source.object_type == "demander") {
@@ -50,13 +49,48 @@ var MapSim = React.createClass({
         });
       }
       if (stream._deleted == true){
-        markersArray[0].setMap(null);
-        markersArray.splice(0,1);
+         markersArray[stream._source.location].setMap(null);
+         console.log("deleted");
+         markersArray.splice(stream._source.location,1);
+        //marker.setMap(null);
       }
       else {
+        // marker.setMap(self.state.map);
+        // markersArray.push(marker);
         marker.setMap(self.state.map);
-        markersArray.push(marker);
+        console.log("added");
+        markersArray[stream._source.location]=marker;
       }
+
+    }).on('error', function(stream) {
+      console.log(stream)
+    });
+  },
+
+  startWhereStopped: function(map, gridCenterPointsArray) {
+    var requestMarkerObject = helper.buildRequestMarkerObject();
+    appbaseRef.search(requestMarkerObject).on('data', function(stream) {
+      console.log(stream.hits.total);
+      for(var h = 0; h < stream.hits.total; h++){
+        var marker=null;
+        if(stream.hits.hits[h]._source.object_type == "demander"){
+          marker = new google.maps.Marker({
+            position: new google.maps.LatLng(stream.hits.hits[h]._source.location[1], stream.hits.hits[h]._source.location[0]),
+            label: "D",
+            map: map
+          });
+          console.log("setting demader");
+        }
+        else{
+          marker = new google.maps.Marker({
+            position: new google.maps.LatLng(stream.hits.hits[h]._source.location[1], stream.hits.hits[h]._source.location[0]),
+            label: "S",
+            map: map
+          });
+          console.log("setting supplier");
+        }
+      }
+
 
     }).on('error', function(stream) {
       console.log(stream)
@@ -73,20 +107,22 @@ var MapSim = React.createClass({
 
     // triggers gridcreator, labelcreator, heatmapcreator when the map is in idle state
     google.maps.event.addListenerOnce(map, 'idle', function(){
-      var gridCenterPointsArray = [];
+
       gridCenterPointsArray = GridCreator.createGridLines(map.getBounds(), 0.5);
 
-      for (var index = 0; index < gridCenterPointsArray.length; index++) {
-        gridCenterPointsArray[index].heatmap.setMap(self.state.map);
-      }
+      self.startWhereStopped(map, gridCenterPointsArray);
+      setTimeout(function(){
+        for (var index = 0; index < gridCenterPointsArray.length; index++) {
+          gridCenterPointsArray[index].heatmap.setMap(self.state.map);
+        }
+      },3000);
+
 
       // sets the state of grid array and in the callback, calls for the updates heppening in the grids
       self.setState({
         gridCenterPoints: gridCenterPointsArray
       }, function(){
-        for (var index = 0; index < gridCenterPointsArray.length; index++) {
-          self.subscribeGridUpdates(index);
-        }
+          self.subscribeGridUpdates();
       });
     });
   },
