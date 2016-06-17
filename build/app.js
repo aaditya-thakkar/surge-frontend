@@ -34774,7 +34774,6 @@ var MapSim = React.createClass({
 
     // appbase search stream query
     appbaseRef.searchStream(requestMarkerObject).on('data', function (stream) {
-      //var detectedPoint= Evaluator.findSurgePrice(stream, gridCenterPoints, index);
       var marker = null;
       if (stream._source.object_type == "demander") {
         marker = new google.maps.Marker({
@@ -34791,14 +34790,12 @@ var MapSim = React.createClass({
         markersArray[stream._source.location].setMap(null);
         console.log("deleted");
         markersArray.splice(stream._source.location, 1);
-        //marker.setMap(null);
       } else {
-          // marker.setMap(self.state.map);
-          // markersArray.push(marker);
-          marker.setMap(self.state.map);
-          console.log("added");
-          markersArray[stream._source.location] = marker;
-        }
+
+        marker.setMap(self.state.map);
+        console.log("added");
+        markersArray[stream._source.location] = marker;
+      }
     }).on('error', function (stream) {
       console.log(stream);
     });
