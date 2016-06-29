@@ -4,6 +4,7 @@ var config = require('../config.json');
 var helper = require('./helper.js');
 var GridCreator = require('./GridCreator.js');
 var Evaluator = require('./Evaluator.js');
+var Simulator = require('../backend/simulator.js');
 
 // Latitude and Longitude for San Francisco center
 var mapCenterLocation = new google.maps.LatLng(37.7441, -122.4450);
@@ -52,10 +53,11 @@ var Map = React.createClass({
     var self = this;
     var showButton = document.createElement("input");
     showButton.type = "button";
-    showButton.value = "Show Simulation";
+    showButton.value = "Start Simulation";
     showButton.className = "btn btn-primary";
     showButton.onclick = function(){
       var win = window.open('simulation.html', '_blank');
+      Simulator.dataGenerator();
       win.focus();
     };
     var foo = document.getElementById("floating-panel");
