@@ -34871,7 +34871,7 @@ var MapSim = React.createClass({
   },
 
   // stream the updates happening in the grid, i.e new demander comes, new suppiler comes, etc. and according to new surge price change the color of grid heatmap
-  subscribeGridUpdates: function () {
+  callRealtimeGridUpdates: function () {
     var self = this;
     var requestMarkerObject = helper.buildRequestMarkerObject();
 
@@ -34894,7 +34894,6 @@ var MapSim = React.createClass({
         console.log("deleted");
         markersArray.splice(stream._source.location, 1);
       } else {
-
         marker.setMap(self.state.map);
         console.log("added");
         markersArray[stream._source.location] = marker;
@@ -34904,7 +34903,7 @@ var MapSim = React.createClass({
     });
   },
 
-  startWhereStopped: function (map, gridCenterPointsArray) {
+  callStaticUpdates: function (map, gridCenterPointsArray) {
     var requestMarkerObject = helper.buildRequestMarkerObject();
     appbaseRef.search(requestMarkerObject).on('data', function (stream) {
       console.log(stream.hits.total);
@@ -34938,24 +34937,18 @@ var MapSim = React.createClass({
     this.setState({
       map: map
     });
-
     // triggers gridcreator, labelcreator, heatmapcreator when the map is in idle state
     google.maps.event.addListenerOnce(map, 'idle', function () {
-
       gridCenterPointsArray = GridCreator.createGridLines(map.getBounds(), 0.5);
-
-      self.startWhereStopped(map, gridCenterPointsArray);
-      setTimeout(function () {
-        for (var index = 0; index < gridCenterPointsArray.length; index++) {
-          gridCenterPointsArray[index].heatmap.setMap(self.state.map);
-        }
-      }, 3000);
-
+      self.callStaticUpdates(map, gridCenterPointsArray);
+      for (var index = 0; index < gridCenterPointsArray.length; index++) {
+        gridCenterPointsArray[index].heatmap.setMap(self.state.map);
+      }
       // sets the state of grid array and in the callback, calls for the updates heppening in the grids
       self.setState({
         gridCenterPoints: gridCenterPointsArray
       }, function () {
-        self.subscribeGridUpdates();
+        self.callRealtimeGridUpdates();
       });
     });
   },
@@ -35015,7 +35008,6 @@ var Map = React.createClass({
     // appbase search stream query
     appbaseRef.searchStream(requestObject).on('data', function (stream) {
       var detectedPoint = Evaluator.findSurgePrice(stream, gridCenterPoints, index);
-      console.log(detectedPoint);
       gridCenterPoints[detectedPoint.index].heatmap.setOptions({ fillColor: detectedPoint.gridCenterPoints[index].color });
       gridCenterPoints[detectedPoint.index].heatmap.setOptions({ strokeColor: detectedPoint.gridCenterPoints[index].color });
       gridCenterPoints[detectedPoint.index].heatmap.setOptions({ strokeOpacity: detectedPoint.gridCenterPoints[index].opacity });
