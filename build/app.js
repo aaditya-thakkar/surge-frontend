@@ -35006,7 +35006,7 @@ var Map = React.createClass({
   },
 
   // stream the updates happening in the grid, i.e new demander comes, new suppiler comes, etc. and according to new surge price change the color of grid heatmap
-  subscribeGridUpdates: function (gridPointsIndex) {
+  callRealtimeGridUpdates: function (gridPointsIndex) {
     var index = gridPointsIndex;
     var self = this;
     var gridCenterPoints = this.state.gridCenterPoints;
@@ -35015,7 +35015,7 @@ var Map = React.createClass({
     // appbase search stream query
     appbaseRef.searchStream(requestObject).on('data', function (stream) {
       var detectedPoint = Evaluator.findSurgePrice(stream, gridCenterPoints, index);
-
+      console.log(detectedPoint);
       gridCenterPoints[detectedPoint.index].heatmap.setOptions({ fillColor: detectedPoint.gridCenterPoints[index].color });
       gridCenterPoints[detectedPoint.index].heatmap.setOptions({ strokeColor: detectedPoint.gridCenterPoints[index].color });
       gridCenterPoints[detectedPoint.index].heatmap.setOptions({ strokeOpacity: detectedPoint.gridCenterPoints[index].opacity });
@@ -35040,7 +35040,8 @@ var Map = React.createClass({
     foo.appendChild(showButton);
   },
 
-  startWhereStopped: function (map, gridCenterPointsArray, index) {
+  callStaticUpdates: function (map, gridCenterPointsArray, index) {
+    var self = this;
     var requestObject = helper.buildRequestObject(gridCenterPointsArray[index].long, gridCenterPointsArray[index].lat);
     appbaseRef.search(requestObject).on('data', function (stream) {
       for (var h = 0; h < stream.hits.total; h++) {
@@ -35050,9 +35051,17 @@ var Map = React.createClass({
         gridCenterPointsArray[detectedPoint.index].heatmap.setOptions({ strokeOpacity: detectedPoint.gridCenterPoints[index].opacity });
         gridCenterPointsArray[detectedPoint.index].heatmap.setOptions({ fillOpacity: detectedPoint.gridCenterPoints[index].opacity });
       }
+      gridCenterPointsArray[index].heatmap.setMap(self.state.map);
     }).on('error', function (stream) {
       console.log(stream);
     });
+  },
+
+  callForUpdates: function (map, gridCenterPoints) {
+    var self = this;
+    for (var index = 0; index < gridCenterPointsArray.length; index++) {
+      this.callStaticUpdates(map, gridCenterPointsArray, index);
+    }
   },
 
   componentDidMount: function () {
@@ -35063,34 +35072,16 @@ var Map = React.createClass({
     this.setState({
       map: map
     });
-
     this.createShowSimulationButton();
-
     // triggers gridcreator and heatmapcreator when the map is in idle state
     google.maps.event.addListenerOnce(map, 'idle', function () {
-
       gridCenterPointsArray = GridCreator.createGridLines(map.getBounds(), 0);
-
-      for (var index = 0; index < gridCenterPointsArray.length; index++) {
-        self.startWhereStopped(map, gridCenterPointsArray, index);
-      }
-
-      setTimeout(function () {
-        console.log("setting heatmap");
-        for (var index = 0; index < gridCenterPointsArray.length; index++) {
-          console.log(gridCenterPointsArray[index]);
-
-          gridCenterPointsArray[index].heatmap.setMap(self.state.map);
-        }
-      }, 10000);
-      console.log("heatmap set");
-
-      // sets the state of grid array and in the callback, calls for the updates heppening in the grids
+      self.callForUpdates(map, gridCenterPointsArray);
       self.setState({
         gridCenterPoints: gridCenterPointsArray
       }, function () {
         for (var index = 0; index < gridCenterPointsArray.length; index++) {
-          self.subscribeGridUpdates(index);
+          self.callRealtimeGridUpdates(index);
         }
       });
     });
