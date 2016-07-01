@@ -34912,15 +34912,15 @@ var Map = React.createClass({
 
   updateCellColors: function (gridCenterPoints, index) {
     // colors and labels according to the surge price measures
-    if (gridCenterPoints[index].surgePrice <= 1) {
+    if (gridCenterPoints[index].surgePrice < 1) {
       console.log("surge <1");
       gridCenterPoints[index].color = "#00ffffff";
       gridCenterPoints[index].opacity = 0.0;
-    } else if (gridCenterPoints[index].surgePrice <= 2) {
+    } else if (gridCenterPoints[index].surgePrice < 2) {
       console.log("surge < 2");
       gridCenterPoints[index].color = "#ec891d";
       gridCenterPoints[index].opacity = 0.15;
-    } else if (gridCenterPoints[index].surgePrice <= 3) {
+    } else if (gridCenterPoints[index].surgePrice < 3) {
       console.log("surge <3");
       gridCenterPoints[index].color = "#ff0000";
       gridCenterPoints[index].opacity = 0.15;
@@ -34965,8 +34965,7 @@ var Map = React.createClass({
       Simulator.dataGenerator();
       win.focus();
     };
-    var foo = document.getElementById("floating-panel");
-    foo.appendChild(showButton);
+    document.getElementById("floating-panel").appendChild(showButton);
   },
 
   callStaticUpdates: function (map, gridCenterPointsArray, index) {
@@ -34976,6 +34975,11 @@ var Map = React.createClass({
       for (var h = 0; h < stream.hits.total; h++) {
         gridCenterPointsArray = MapController.findSurgePrice(stream.hits.hits[h], gridCenterPointsArray, index);
         self.updateCellColors(gridCenterPointsArray, index);
+        marker = new google.maps.Marker({
+          position: new google.maps.LatLng(stream.hits.hits[h]._source["location-field"][1], stream.hits.hits[h]._source["location-field"][0]),
+          label: "D",
+          map: map
+        });
       }
       gridCenterPointsArray[index].cell.setMap(self.state.map);
     }).on('error', function (stream) {
