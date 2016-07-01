@@ -2,8 +2,7 @@ var React = require('react');
 var ReactDOM = require('react-dom');
 var config = require('../config.json');
 var helper = require('./helper.js');
-var GridCreator = require('./HeatmapCreator.js');
-var Evaluator = require('./Evaluator.js');
+var HeatmapCreator = require('./HeatmapCreator.js');
 
 // Latitude and Longitude for San Francisco center
 var mapCenterLocation = new google.maps.LatLng(37.7441, -122.4450);
@@ -80,10 +79,10 @@ var MapSim = React.createClass({
     });
     // triggers gridcreator, labelcreator, heatmapcreator when the map is in idle state
     google.maps.event.addListenerOnce(map, 'idle', function(){
-      gridCenterPointsArray = GridCreator.createGridLines(map.getBounds(), 0.5);
+      gridCenterPointsArray = HeatmapCreator.createGridLines(map.getBounds(), 0.5);
       self.callStaticUpdates(map, gridCenterPointsArray);
       for (var index = 0; index < gridCenterPointsArray.length; index++) {
-        gridCenterPointsArray[index].heatmap.setMap(self.state.map);
+        gridCenterPointsArray[index].cell.setMap(self.state.map);
       }
       // sets the state of grid array and in the callback, calls for the updates heppening in the grids
       self.setState({
