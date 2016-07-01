@@ -49,13 +49,12 @@ var helper = require('../src/helper.js');
 var appbaseRef = helper.appbaseRef;
 
 var maxNumberOfNodes = 10;
-var timeBetweenInsertions = 500;
+var timeBetweenInsertions = 1000;
 
 // enter demander's location into appbase table
-function addNode(index, type) {
+function addNode(index) {
   var latLongData = {
-    object_type: type,
-    location: [parseFloat(locationGenerator.generateLatLong().long), parseFloat(locationGenerator.generateLatLong().lat)]
+    "location-field": [parseFloat(locationGenerator.generateLatLong().long), parseFloat(locationGenerator.generateLatLong().lat)]
   };
   var requestObject = {
     type: config.appbase.type,
@@ -66,7 +65,7 @@ function addNode(index, type) {
   appbaseRef.index(requestObject).on('data', function (response) {
     console.log(" Inserted ", index);
     setTimeout(deleteNode(index), (index + maxNumberOfNodes) * timeBetweenInsertions);
-    setTimeout(generateNode(index), (index + maxNumberOfNodes) * timeBetweenInsertions);
+    setTimeout(addNode(index), (index + maxNumberOfNodes) * timeBetweenInsertions);
   }).on('error', function (error) {
     console.log(error);
   });
@@ -85,28 +84,21 @@ function deleteNode(index) {
   });
 }
 
-function generateNode(index) {
-  var weight = Math.random();
-  if (weight > 0.5) {
-    addNode(index, 'demander');
-  } else addNode(index, 'supplier');
-}
-
 module.exports = {
   // Randomly generate the demander & Supplier
   dataGenerator: function () {
     for (var index = 0; index <= maxNumberOfNodes; index++) {
-      setTimeout(generateNode(index), index * timeBetweenInsertions);
+      setTimeout(addNode(index), index * timeBetweenInsertions);
     }
   }
 };
 
-},{"../config.json":3,"../src/helper.js":277,"./locationGenerator":1,"appbase-js":14}],3:[function(require,module,exports){
+},{"../config.json":3,"../src/helper.js":276,"./locationGenerator":1,"appbase-js":14}],3:[function(require,module,exports){
 module.exports={
   "appbase": {
-    "appname": "surge_price",
-    "username": "s7I79Hzeb",
-    "password": "79b87fc5-9629-4842-8bc1-a5108474e178",
+    "appname": "map_demo",
+    "username": "aT29UsiAp",
+    "password": "e0d26007-d818-4559-8244-c3c2fbad45ad",
     "type": "coordinates"
   }
 }
@@ -34697,42 +34689,27 @@ module.exports = {
 
   findSurgePrice: function (stream, gridCenterPoints, index) {
     if (stream._deleted == true) {
-      if (stream._source.object_type == "demander") {
-        gridCenterPoints[index].numberOfDemanders--;
-      } else if (stream._source.object_type == "supplier") {
-        gridCenterPoints[index].numberOfSuppliers--;
-      }
+      gridCenterPoints[index].numberOfDemanders--;
     } else {
-      if (stream._source.object_type == "demander") {
-        gridCenterPoints[index].numberOfDemanders++;
-      } else if (stream._source.object_type == "supplier") {
-        gridCenterPoints[index].numberOfSuppliers++;
-      }
+      gridCenterPoints[index].numberOfDemanders++;
     }
 
     // surge price = number of demanders/number of suppliers
-    gridCenterPoints[index].surgePrice = gridCenterPoints[index].numberOfDemanders / gridCenterPoints[index].numberOfSuppliers;
-
-    // corner cases
-    if (gridCenterPoints[index].numberOfDemanders != 0 && gridCenterPoints[index].numberOfSuppliers == 0) {
-      gridCenterPoints[index].surgePrice = 7;
-    } else if (gridCenterPoints[index].numberOfDemanders == 0 && gridCenterPoints[index].numberOfSuppliers == 0) {
-      gridCenterPoints[index].surgePrice = 0;
-    }
+    gridCenterPoints[index].surgePrice = gridCenterPoints[index].numberOfDemanders;
 
     // colors and labels according to the surge price measures
-    if (gridCenterPoints[index].surgePrice <= 0.6) {
+    if (gridCenterPoints[index].surgePrice <= 1) {
       gridCenterPoints[index].color = "#00ffffff";
       gridCenterPoints[index].opacity = 0.0;
-    } else if (gridCenterPoints[index].surgePrice <= 0.75) {
+    } else if (gridCenterPoints[index].surgePrice <= 2) {
       gridCenterPoints[index].color = "#ec891d";
-      gridCenterPoints[index].opacity = 0.35;
-    } else if (gridCenterPoints[index].surgePrice <= 2.0) {
+      gridCenterPoints[index].opacity = 0.15;
+    } else if (gridCenterPoints[index].surgePrice <= 3) {
       gridCenterPoints[index].color = "#ff0000";
-      gridCenterPoints[index].opacity = 0.35;
+      gridCenterPoints[index].opacity = 0.15;
     } else {
       gridCenterPoints[index].color = "#4c0000";
-      gridCenterPoints[index].opacity = 0.35;
+      gridCenterPoints[index].opacity = 0.15;
     }
 
     return {
@@ -34744,13 +34721,10 @@ module.exports = {
 };
 
 },{}],273:[function(require,module,exports){
-var HeatmapCreator = require('./HeatmapCreator.js');
-
 module.exports = {
-  // constant lat-long offset
-  llOffset: 0.00666666666666667 * 1.5,
-
+  /* Create grid bounds on the map, called from Map.js on map initialization. */
   createGridLines: function (mapBounds, opacity) {
+    var llOffset = 0.00666666666666667 * 1.5;
     var gridCenterPointsArray = [];
 
     // north, south, east, and west coordinates of the map.
@@ -34760,33 +34734,33 @@ module.exports = {
     var west = mapBounds.getSouthWest().lng();
 
     // defines the size of the grid sides.
-    var topLat = Math.ceil(north / this.llOffset) * this.llOffset;
-    var rightLong = Math.ceil(east / this.llOffset) * this.llOffset;
-    var bottomLat = Math.floor(south / this.llOffset) * this.llOffset;
-    var leftLong = Math.floor(west / this.llOffset) * this.llOffset;
+    var topLat = Math.ceil(north / llOffset) * llOffset;
+    var rightLong = Math.ceil(east / llOffset) * llOffset;
+    var bottomLat = Math.floor(south / llOffset) * llOffset;
+    var leftLong = Math.floor(west / llOffset) * llOffset;
 
     // generates each grid's coordinates
-    for (var latitude = bottomLat; latitude <= topLat + 3 * this.llOffset; latitude += this.llOffset) {
-      if (latitude >= topLat + this.llOffset) {
-        leftLong += 2 * this.llOffset;
-        rightLong -= this.llOffset;
+    for (var latitude = bottomLat; latitude <= topLat + 3 * llOffset; latitude += llOffset) {
+      if (latitude >= topLat + llOffset) {
+        leftLong += 2 * llOffset;
+        rightLong -= llOffset;
       }
-      for (var longitude = leftLong + this.llOffset; longitude <= rightLong; longitude += this.llOffset) {
+      for (var longitude = leftLong + llOffset; longitude <= rightLong; longitude += llOffset) {
         var upLeftCoord = {
-          lat: latitude + this.llOffset / 2,
-          lng: longitude - this.llOffset / 2
+          lat: latitude + llOffset / 2,
+          lng: longitude - llOffset / 2
         };
         var upRightCoord = {
-          lat: latitude + this.llOffset / 2,
-          lng: longitude + this.llOffset / 2
+          lat: latitude + llOffset / 2,
+          lng: longitude + llOffset / 2
         };
         var lowLeftCoord = {
-          lat: latitude - this.llOffset / 2,
-          lng: longitude - this.llOffset / 2
+          lat: latitude - llOffset / 2,
+          lng: longitude - llOffset / 2
         };
         var lowRightCoord = {
-          lat: latitude - this.llOffset / 2,
-          lng: longitude + this.llOffset / 2
+          lat: latitude - llOffset / 2,
+          lng: longitude + llOffset / 2
         };
 
         // initial default color when map loads and grids are created
@@ -34807,26 +34781,20 @@ module.exports = {
           numberOfSuppliers: 0,
           color: color,
           opacity: opacity,
-          label: "A",
-          heatmap: HeatmapCreator.createHeatmap(opacity, color, upLeftCoord, upRightCoord, lowRightCoord, lowLeftCoord)
+          cell: this.createCell(opacity, color, upLeftCoord, upRightCoord, lowRightCoord, lowLeftCoord)
         };
         gridCenterPointsArray.push(gridCenterObject);
       }
     }
     return gridCenterPointsArray;
-  }
-};
+  },
 
-},{"./HeatmapCreator.js":274}],274:[function(require,module,exports){
-module.exports = {
-
-  createHeatmap: function (opacity, color, upLeftCoord, upRightCoord, lowRightCoord, lowLeftCoord) {
-
-    // bounds for the heatmap polygon
+  createCell: function (opacity, color, upLeftCoord, upRightCoord, lowRightCoord, lowLeftCoord) {
+    // bounds for the cell polygon
     var polyCoords = [upLeftCoord, upRightCoord, lowRightCoord, lowLeftCoord];
 
-    // heatmap properties
-    var heatmapProps = new google.maps.Polygon({
+    // cell properties
+    var cellProps = new google.maps.Polygon({
       paths: polyCoords,
       strokeColor: color,
       strokeOpacity: opacity,
@@ -34834,16 +34802,16 @@ module.exports = {
       fillColor: color,
       fillOpacity: opacity
     });
-    return heatmapProps;
+    return cellProps;
   }
 };
 
-},{}],275:[function(require,module,exports){
+},{}],274:[function(require,module,exports){
 var React = require('react');
 var ReactDOM = require('react-dom');
 var config = require('../config.json');
 var helper = require('./helper.js');
-var GridCreator = require('./GridCreator.js');
+var GridCreator = require('./HeatmapCreator.js');
 var Evaluator = require('./Evaluator.js');
 
 // Latitude and Longitude for San Francisco center
@@ -34878,25 +34846,18 @@ var MapSim = React.createClass({
     // appbase search stream query
     appbaseRef.searchStream(requestMarkerObject).on('data', function (stream) {
       var marker = null;
-      if (stream._source.object_type == "demander") {
-        marker = new google.maps.Marker({
-          position: new google.maps.LatLng(stream._source.location[1], stream._source.location[0]),
-          label: "D"
-        });
-      } else {
-        marker = new google.maps.Marker({
-          position: new google.maps.LatLng(stream._source.location[1], stream._source.location[0]),
-          label: 'S'
-        });
-      }
+      marker = new google.maps.Marker({
+        position: new google.maps.LatLng(stream._source["location-field"][1], stream._source["location-field"][0]),
+        label: "D"
+      });
       if (stream._deleted == true) {
-        markersArray[stream._source.location].setMap(null);
+        markersArray[stream._source["location-field"]].setMap(null);
         console.log("deleted");
-        markersArray.splice(stream._source.location, 1);
+        markersArray.splice(stream._source["location-field"], 1);
       } else {
         marker.setMap(self.state.map);
         console.log("added");
-        markersArray[stream._source.location] = marker;
+        markersArray[stream._source["location-field"]] = marker;
       }
     }).on('error', function (stream) {
       console.log(stream);
@@ -34908,22 +34869,12 @@ var MapSim = React.createClass({
     appbaseRef.search(requestMarkerObject).on('data', function (stream) {
       console.log(stream.hits.total);
       for (var h = 0; h < stream.hits.total; h++) {
-        var marker = null;
-        if (stream.hits.hits[h]._source.object_type == "demander") {
-          marker = new google.maps.Marker({
-            position: new google.maps.LatLng(stream.hits.hits[h]._source.location[1], stream.hits.hits[h]._source.location[0]),
-            label: "D",
-            map: map
-          });
-          console.log("setting demader");
-        } else {
-          marker = new google.maps.Marker({
-            position: new google.maps.LatLng(stream.hits.hits[h]._source.location[1], stream.hits.hits[h]._source.location[0]),
-            label: "S",
-            map: map
-          });
-          console.log("setting supplier");
-        }
+        marker = new google.maps.Marker({
+          position: new google.maps.LatLng(stream.hits.hits[h]._source["location-field"][1], stream.hits.hits[h]._source["location-field"][0]),
+          label: "D",
+          map: map
+        });
+        console.log("setting demader");
       }
     }).on('error', function (stream) {
       console.log(stream);
@@ -34964,19 +34915,17 @@ var MapSim = React.createClass({
 
 module.exports = MapSim;
 
-},{"../config.json":3,"./Evaluator.js":272,"./GridCreator.js":273,"./helper.js":277,"react":271,"react-dom":104}],276:[function(require,module,exports){
+},{"../config.json":3,"./Evaluator.js":272,"./HeatmapCreator.js":273,"./helper.js":276,"react":271,"react-dom":104}],275:[function(require,module,exports){
 var React = require('react');
 var ReactDOM = require('react-dom');
 var config = require('../config.json');
 var helper = require('./helper.js');
-var GridCreator = require('./GridCreator.js');
+var GridCreator = require('./HeatmapCreator.js');
 var Evaluator = require('./Evaluator.js');
 var Simulator = require('../backend/simulator.js');
 
 // Latitude and Longitude for San Francisco center
 var mapCenterLocation = new google.maps.LatLng(37.7441, -122.4450);
-var demandersArray = [];
-var suppliersArray = [];
 var gridCenterPointsArray = [];
 var appbaseRef = helper.appbaseRef;
 var Map = React.createClass({
@@ -34998,20 +34947,21 @@ var Map = React.createClass({
     };
   },
 
-  // stream the updates happening in the grid, i.e new demander comes, new suppiler comes, etc. and according to new surge price change the color of grid heatmap
+  // stream the updates happening in the grid, i.e new demander comes, new suppiler comes, etc. and according to new surge price change the color of grid cell
   callRealtimeGridUpdates: function (gridPointsIndex) {
     var index = gridPointsIndex;
     var self = this;
     var gridCenterPoints = this.state.gridCenterPoints;
-    var requestObject = helper.buildRequestObject(gridCenterPoints[index].long, gridCenterPoints[index].lat);
+    var requestObject = helper.buildRequestObject([gridCenterPoints[index].upLeftCoord.lng, gridCenterPoints[index].upLeftCoord.lat], [gridCenterPoints[index].lowRightCoord.lng, gridCenterPoints[index].lowRightCoord.lat]);
 
     // appbase search stream query
     appbaseRef.searchStream(requestObject).on('data', function (stream) {
       var detectedPoint = Evaluator.findSurgePrice(stream, gridCenterPoints, index);
-      gridCenterPoints[detectedPoint.index].heatmap.setOptions({ fillColor: detectedPoint.gridCenterPoints[index].color });
-      gridCenterPoints[detectedPoint.index].heatmap.setOptions({ strokeColor: detectedPoint.gridCenterPoints[index].color });
-      gridCenterPoints[detectedPoint.index].heatmap.setOptions({ strokeOpacity: detectedPoint.gridCenterPoints[index].opacity });
-      gridCenterPoints[detectedPoint.index].heatmap.setOptions({ fillOpacity: detectedPoint.gridCenterPoints[index].opacity });
+      console.log("detectedPoint" + detectedPoint);
+      gridCenterPoints[detectedPoint.index].cell.setOptions({ fillColor: detectedPoint.gridCenterPoints[index].color });
+      gridCenterPoints[detectedPoint.index].cell.setOptions({ strokeColor: detectedPoint.gridCenterPoints[index].color });
+      gridCenterPoints[detectedPoint.index].cell.setOptions({ strokeOpacity: detectedPoint.gridCenterPoints[index].opacity * 0 });
+      gridCenterPoints[detectedPoint.index].cell.setOptions({ fillOpacity: detectedPoint.gridCenterPoints[index].opacity * 4 });
     }).on('error', function (stream) {
       console.log(stream);
     });
@@ -35034,16 +34984,17 @@ var Map = React.createClass({
 
   callStaticUpdates: function (map, gridCenterPointsArray, index) {
     var self = this;
-    var requestObject = helper.buildRequestObject(gridCenterPointsArray[index].long, gridCenterPointsArray[index].lat);
+    var requestObject = helper.buildRequestObject([gridCenterPointsArray[index].upLeftCoord.lng, gridCenterPointsArray[index].upLeftCoord.lat], [gridCenterPointsArray[index].lowRightCoord.lng, gridCenterPointsArray[index].lowRightCoord.lat]);
     appbaseRef.search(requestObject).on('data', function (stream) {
       for (var h = 0; h < stream.hits.total; h++) {
         var detectedPoint = Evaluator.findSurgePrice(stream.hits.hits[h], gridCenterPointsArray, index);
-        gridCenterPointsArray[detectedPoint.index].heatmap.setOptions({ fillColor: detectedPoint.gridCenterPoints[index].color });
-        gridCenterPointsArray[detectedPoint.index].heatmap.setOptions({ strokeColor: detectedPoint.gridCenterPoints[index].color });
-        gridCenterPointsArray[detectedPoint.index].heatmap.setOptions({ strokeOpacity: detectedPoint.gridCenterPoints[index].opacity });
-        gridCenterPointsArray[detectedPoint.index].heatmap.setOptions({ fillOpacity: detectedPoint.gridCenterPoints[index].opacity });
+
+        gridCenterPointsArray[detectedPoint.index].cell.setOptions({ fillColor: detectedPoint.gridCenterPoints[index].color });
+        gridCenterPointsArray[detectedPoint.index].cell.setOptions({ strokeColor: detectedPoint.gridCenterPoints[index].color });
+        gridCenterPointsArray[detectedPoint.index].cell.setOptions({ strokeOpacity: detectedPoint.gridCenterPoints[index].opacity * 0 });
+        gridCenterPointsArray[detectedPoint.index].cell.setOptions({ fillOpacity: detectedPoint.gridCenterPoints[index].opacity * 4 });
       }
-      gridCenterPointsArray[index].heatmap.setMap(self.state.map);
+      gridCenterPointsArray[index].cell.setMap(self.state.map);
     }).on('error', function (stream) {
       console.log(stream);
     });
@@ -35065,7 +35016,7 @@ var Map = React.createClass({
       map: map
     });
     this.createShowSimulationButton();
-    // triggers gridcreator and heatmapcreator when the map is in idle state
+    // when the map is initialized, we set grid bounds and start listening for data updates
     google.maps.event.addListenerOnce(map, 'idle', function () {
       gridCenterPointsArray = GridCreator.createGridLines(map.getBounds(), 0);
       self.callForUpdates(map, gridCenterPointsArray);
@@ -35090,7 +35041,7 @@ var Map = React.createClass({
 
 module.exports = Map;
 
-},{"../backend/simulator.js":2,"../config.json":3,"./Evaluator.js":272,"./GridCreator.js":273,"./helper.js":277,"react":271,"react-dom":104}],277:[function(require,module,exports){
+},{"../backend/simulator.js":2,"../config.json":3,"./Evaluator.js":272,"./HeatmapCreator.js":273,"./helper.js":276,"react":271,"react-dom":104}],276:[function(require,module,exports){
 var Appbase = require('../node_modules/appbase-js');
 var config = require('../config.json');
 
@@ -35103,19 +35054,21 @@ module.exports = {
   }),
 
   // returns geo distance query object
-  buildRequestObject: function (long, lat) {
+  buildRequestObject: function (top_left, bottom_right) {
     return {
       type: config.appbase.type,
       body: {
         "query": {
-          "filtered": {
-            "query": {
+          "bool": {
+            "must": {
               "match_all": {}
             },
             "filter": {
-              "geo_distance": {
-                "distance": "10km",
-                "location": [long, lat]
+              "geo_bounding_box": {
+                "location-field": {
+                  "top_left": top_left,
+                  "bottom_right": bottom_right
+                }
               }
             }
           }
@@ -35136,7 +35089,7 @@ module.exports = {
   }
 };
 
-},{"../config.json":3,"../node_modules/appbase-js":14}],278:[function(require,module,exports){
+},{"../config.json":3,"../node_modules/appbase-js":14}],277:[function(require,module,exports){
 var ReactDOM = require('react-dom');
 var React = require('react');
 // mixin to improve the performance
@@ -35156,10 +35109,10 @@ React.createClass({
   }
 });
 //console.log(window.location.pathname);
-if (window.location.pathname == "/surge-frontend/index.html") {
+if (window.location.pathname == "/index.html") {
   ReactDOM.render(React.createElement(Map, null), document.getElementById('app'));
-} else if (window.location.pathname == "/surge-frontend/simulation.html") {
+} else if (window.location.pathname == "/simulation.html") {
   ReactDOM.render(React.createElement(MapSim, null), document.getElementById('app'));
 }
 
-},{"./Map":276,"./Map-simulation":275,"react":271,"react-addons-pure-render-mixin":103,"react-dom":104}]},{},[278]);
+},{"./Map":275,"./Map-simulation":274,"react":271,"react-addons-pure-render-mixin":103,"react-dom":104}]},{},[277]);
