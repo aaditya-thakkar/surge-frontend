@@ -34686,42 +34686,6 @@ module.exports = require('./lib/React');
 
 },{"./lib/React":130}],272:[function(require,module,exports){
 module.exports = {
-
-  findSurgePrice: function (stream, gridCenterPoints, index) {
-    if (stream._deleted == true) {
-      gridCenterPoints[index].numberOfDemanders--;
-    } else {
-      gridCenterPoints[index].numberOfDemanders++;
-    }
-
-    // surge price = number of demanders/number of suppliers
-    gridCenterPoints[index].surgePrice = gridCenterPoints[index].numberOfDemanders;
-
-    // colors and labels according to the surge price measures
-    if (gridCenterPoints[index].surgePrice <= 1) {
-      gridCenterPoints[index].color = "#00ffffff";
-      gridCenterPoints[index].opacity = 0.0;
-    } else if (gridCenterPoints[index].surgePrice <= 2) {
-      gridCenterPoints[index].color = "#ec891d";
-      gridCenterPoints[index].opacity = 0.15;
-    } else if (gridCenterPoints[index].surgePrice <= 3) {
-      gridCenterPoints[index].color = "#ff0000";
-      gridCenterPoints[index].opacity = 0.15;
-    } else {
-      gridCenterPoints[index].color = "#4c0000";
-      gridCenterPoints[index].opacity = 0.15;
-    }
-
-    return {
-      gridCenterPoints: gridCenterPoints,
-      index: index
-    };
-  }
-
-};
-
-},{}],273:[function(require,module,exports){
-module.exports = {
   /* Create grid bounds on the map, called from Map.js on map initialization. */
   createGridLines: function (mapBounds, opacity) {
     var llOffset = 0.00666666666666667 * 1.5;
@@ -34806,13 +34770,12 @@ module.exports = {
   }
 };
 
-},{}],274:[function(require,module,exports){
+},{}],273:[function(require,module,exports){
 var React = require('react');
 var ReactDOM = require('react-dom');
 var config = require('../config.json');
 var helper = require('./helper.js');
-var GridCreator = require('./HeatmapCreator.js');
-var Evaluator = require('./Evaluator.js');
+var HeatmapCreator = require('./HeatmapCreator.js');
 
 // Latitude and Longitude for San Francisco center
 var mapCenterLocation = new google.maps.LatLng(37.7441, -122.4450);
@@ -34890,10 +34853,10 @@ var MapSim = React.createClass({
     });
     // triggers gridcreator, labelcreator, heatmapcreator when the map is in idle state
     google.maps.event.addListenerOnce(map, 'idle', function () {
-      gridCenterPointsArray = GridCreator.createGridLines(map.getBounds(), 0.5);
+      gridCenterPointsArray = HeatmapCreator.createGridLines(map.getBounds(), 0.5);
       self.callStaticUpdates(map, gridCenterPointsArray);
       for (var index = 0; index < gridCenterPointsArray.length; index++) {
-        gridCenterPointsArray[index].heatmap.setMap(self.state.map);
+        gridCenterPointsArray[index].cell.setMap(self.state.map);
       }
       // sets the state of grid array and in the callback, calls for the updates heppening in the grids
       self.setState({
@@ -34915,13 +34878,13 @@ var MapSim = React.createClass({
 
 module.exports = MapSim;
 
-},{"../config.json":3,"./Evaluator.js":272,"./HeatmapCreator.js":273,"./helper.js":276,"react":271,"react-dom":104}],275:[function(require,module,exports){
+},{"../config.json":3,"./HeatmapCreator.js":272,"./helper.js":276,"react":271,"react-dom":104}],274:[function(require,module,exports){
 var React = require('react');
 var ReactDOM = require('react-dom');
 var config = require('../config.json');
 var helper = require('./helper.js');
-var GridCreator = require('./HeatmapCreator.js');
-var Evaluator = require('./Evaluator.js');
+var HeatmapCreator = require('./HeatmapCreator.js');
+var MapController = require('./MapController.js');
 var Simulator = require('../backend/simulator.js');
 
 // Latitude and Longitude for San Francisco center
@@ -34947,6 +34910,33 @@ var Map = React.createClass({
     };
   },
 
+  updateCellColors: function (gridCenterPoints, index) {
+    // colors and labels according to the surge price measures
+    if (gridCenterPoints[index].surgePrice <= 1) {
+      console.log("surge <1");
+      gridCenterPoints[index].color = "#00ffffff";
+      gridCenterPoints[index].opacity = 0.0;
+    } else if (gridCenterPoints[index].surgePrice <= 2) {
+      console.log("surge < 2");
+      gridCenterPoints[index].color = "#ec891d";
+      gridCenterPoints[index].opacity = 0.15;
+    } else if (gridCenterPoints[index].surgePrice <= 3) {
+      console.log("surge <3");
+      gridCenterPoints[index].color = "#ff0000";
+      gridCenterPoints[index].opacity = 0.15;
+    } else {
+      console.log("surge <4");
+      gridCenterPoints[index].color = "#4c0000";
+      gridCenterPoints[index].opacity = 0.15;
+    }
+
+    gridCenterPoints[index].cell.setOptions({ fillColor: gridCenterPoints[index].color });
+    console.log(gridCenterPoints[index].cell.fillColor);
+    gridCenterPoints[index].cell.setOptions({ strokeColor: gridCenterPoints[index].color });
+    gridCenterPoints[index].cell.setOptions({ strokeOpacity: gridCenterPoints[index].opacity * 0 });
+    gridCenterPoints[index].cell.setOptions({ fillOpacity: gridCenterPoints[index].opacity * 4 });
+  },
+
   // stream the updates happening in the grid, i.e new demander comes, new suppiler comes, etc. and according to new surge price change the color of grid cell
   callRealtimeGridUpdates: function (gridPointsIndex) {
     var index = gridPointsIndex;
@@ -34956,12 +34946,9 @@ var Map = React.createClass({
 
     // appbase search stream query
     appbaseRef.searchStream(requestObject).on('data', function (stream) {
-      var detectedPoint = Evaluator.findSurgePrice(stream, gridCenterPoints, index);
-      console.log("detectedPoint" + detectedPoint);
-      gridCenterPoints[detectedPoint.index].cell.setOptions({ fillColor: detectedPoint.gridCenterPoints[index].color });
-      gridCenterPoints[detectedPoint.index].cell.setOptions({ strokeColor: detectedPoint.gridCenterPoints[index].color });
-      gridCenterPoints[detectedPoint.index].cell.setOptions({ strokeOpacity: detectedPoint.gridCenterPoints[index].opacity * 0 });
-      gridCenterPoints[detectedPoint.index].cell.setOptions({ fillOpacity: detectedPoint.gridCenterPoints[index].opacity * 4 });
+      gridCenterPoints = MapController.findSurgePrice(stream, gridCenterPoints, index);
+      console.log(gridCenterPoints);
+      self.updateCellColors(gridCenterPoints, index);
     }).on('error', function (stream) {
       console.log(stream);
     });
@@ -34987,12 +34974,8 @@ var Map = React.createClass({
     var requestObject = helper.buildRequestObject([gridCenterPointsArray[index].upLeftCoord.lng, gridCenterPointsArray[index].upLeftCoord.lat], [gridCenterPointsArray[index].lowRightCoord.lng, gridCenterPointsArray[index].lowRightCoord.lat]);
     appbaseRef.search(requestObject).on('data', function (stream) {
       for (var h = 0; h < stream.hits.total; h++) {
-        var detectedPoint = Evaluator.findSurgePrice(stream.hits.hits[h], gridCenterPointsArray, index);
-
-        gridCenterPointsArray[detectedPoint.index].cell.setOptions({ fillColor: detectedPoint.gridCenterPoints[index].color });
-        gridCenterPointsArray[detectedPoint.index].cell.setOptions({ strokeColor: detectedPoint.gridCenterPoints[index].color });
-        gridCenterPointsArray[detectedPoint.index].cell.setOptions({ strokeOpacity: detectedPoint.gridCenterPoints[index].opacity * 0 });
-        gridCenterPointsArray[detectedPoint.index].cell.setOptions({ fillOpacity: detectedPoint.gridCenterPoints[index].opacity * 4 });
+        gridCenterPointsArray = MapController.findSurgePrice(stream.hits.hits[h], gridCenterPointsArray, index);
+        self.updateCellColors(gridCenterPointsArray, index);
       }
       gridCenterPointsArray[index].cell.setMap(self.state.map);
     }).on('error', function (stream) {
@@ -35018,7 +35001,7 @@ var Map = React.createClass({
     this.createShowSimulationButton();
     // when the map is initialized, we set grid bounds and start listening for data updates
     google.maps.event.addListenerOnce(map, 'idle', function () {
-      gridCenterPointsArray = GridCreator.createGridLines(map.getBounds(), 0);
+      gridCenterPointsArray = HeatmapCreator.createGridLines(map.getBounds(), 0);
       self.callForUpdates(map, gridCenterPointsArray);
       self.setState({
         gridCenterPoints: gridCenterPointsArray
@@ -35041,7 +35024,25 @@ var Map = React.createClass({
 
 module.exports = Map;
 
-},{"../backend/simulator.js":2,"../config.json":3,"./Evaluator.js":272,"./HeatmapCreator.js":273,"./helper.js":276,"react":271,"react-dom":104}],276:[function(require,module,exports){
+},{"../backend/simulator.js":2,"../config.json":3,"./HeatmapCreator.js":272,"./MapController.js":275,"./helper.js":276,"react":271,"react-dom":104}],275:[function(require,module,exports){
+module.exports = {
+
+  findSurgePrice: function (stream, gridCenterPoints, index) {
+    if (stream._deleted == true) {
+      gridCenterPoints[index].numberOfDemanders--;
+    } else {
+      gridCenterPoints[index].numberOfDemanders++;
+    }
+
+    // surge price = number of demanders/number of suppliers
+    gridCenterPoints[index].surgePrice = gridCenterPoints[index].numberOfDemanders;
+
+    return gridCenterPoints;
+  }
+
+};
+
+},{}],276:[function(require,module,exports){
 var Appbase = require('../node_modules/appbase-js');
 var config = require('../config.json');
 
@@ -35109,10 +35110,10 @@ React.createClass({
   }
 });
 //console.log(window.location.pathname);
-if (window.location.pathname == "/index.html") {
+if (window.location.pathname == "/surge-frontend/index.html") {
   ReactDOM.render(React.createElement(Map, null), document.getElementById('app'));
-} else if (window.location.pathname == "/simulation.html") {
+} else if (window.location.pathname == "/surge-frontend/simulation.html") {
   ReactDOM.render(React.createElement(MapSim, null), document.getElementById('app'));
 }
 
-},{"./Map":275,"./Map-simulation":274,"react":271,"react-addons-pure-render-mixin":103,"react-dom":104}]},{},[277]);
+},{"./Map":274,"./Map-simulation":273,"react":271,"react-addons-pure-render-mixin":103,"react-dom":104}]},{},[277]);
