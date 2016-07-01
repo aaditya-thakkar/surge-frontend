@@ -2,7 +2,7 @@ var React = require('react');
 var ReactDOM = require('react-dom');
 var config = require('../config.json');
 var helper = require('./helper.js');
-var GridCreator = require('./GridCreator.js');
+var GridCreator = require('./HeatmapCreator.js');
 var Evaluator = require('./Evaluator.js');
 
 // Latitude and Longitude for San Francisco center
@@ -35,27 +35,19 @@ var MapSim = React.createClass({
     // appbase search stream query
     appbaseRef.searchStream(requestMarkerObject).on('data', function(stream) {
       var marker = null;
-      if(stream._source.object_type == "demander") {
-        marker = new google.maps.Marker({
-          position: new google.maps.LatLng(stream._source.location[1], stream._source.location[0]),
-          label: "D",
-        });
-      }
-      else {
-        marker = new google.maps.Marker({
-          position: new google.maps.LatLng(stream._source.location[1], stream._source.location[0]),
-          label: 'S'
-        });
-      }
+      marker = new google.maps.Marker({
+        position: new google.maps.LatLng(stream._source["location-field"][1], stream._source["location-field"][0]),
+        label: "D",
+      });
       if (stream._deleted == true){
-        markersArray[stream._source.location].setMap(null);
+        markersArray[stream._source["location-field"]].setMap(null);
         console.log("deleted");
-        markersArray.splice(stream._source.location,1);
+        markersArray.splice(stream._source["location-field"],1);
       }
       else {
         marker.setMap(self.state.map);
         console.log("added");
-        markersArray[stream._source.location]=marker;
+        markersArray[stream._source["location-field"]]=marker;
       }
     }).on('error', function(stream) {
       console.log(stream)
@@ -67,23 +59,12 @@ var MapSim = React.createClass({
     appbaseRef.search(requestMarkerObject).on('data', function(stream) {
       console.log(stream.hits.total);
       for(var h = 0; h < stream.hits.total; h++){
-        var marker=null;
-        if(stream.hits.hits[h]._source.object_type == "demander"){
-          marker = new google.maps.Marker({
-            position: new google.maps.LatLng(stream.hits.hits[h]._source.location[1], stream.hits.hits[h]._source.location[0]),
-            label: "D",
-            map: map
-          });
-          console.log("setting demader");
-        }
-        else{
-          marker = new google.maps.Marker({
-            position: new google.maps.LatLng(stream.hits.hits[h]._source.location[1], stream.hits.hits[h]._source.location[0]),
-            label: "S",
-            map: map
-          });
-          console.log("setting supplier");
-        }
+        marker = new google.maps.Marker({
+          position: new google.maps.LatLng(stream.hits.hits[h]._source["location-field"][1], stream.hits.hits[h]._source["location-field"][0]),
+          label: "D",
+          map: map
+        });
+        console.log("setting demader");
       }
     }).on('error', function(stream) {
       console.log(stream)
