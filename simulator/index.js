@@ -4,7 +4,7 @@ var config = require('../config.json');
 var helper = require('../src/helper.js');
 var appbaseRef = helper.appbaseRef;
 
-var maxNumberOfNodes = 10;
+var maxNumberOfNodes = 100;
 var timeBetweenInsertions = 1000;
 
 // enter demander's location into appbase table
@@ -20,8 +20,8 @@ var timeBetweenInsertions = 1000;
     // appbase index query
     appbaseRef.index(requestObject).on('data', function(response) {
       console.log(" Inserted ", index);
-      setTimeout(deleteNode(index), (index + maxNumberOfNodes) * timeBetweenInsertions);
-      setTimeout(addNode(index), (index + maxNumberOfNodes) * timeBetweenInsertions);
+      // setTimeout(deleteNode(index), (index + maxNumberOfNodes) * timeBetweenInsertions);
+      // setTimeout(addNode(index), (index + maxNumberOfNodes) * timeBetweenInsertions);
     }).on('error', function(error) {
       console.log(error);
     });
@@ -43,8 +43,11 @@ var timeBetweenInsertions = 1000;
 module.exports = {
   // Randomly generate the demander & Supplier
   dataGenerator: function() {
-    for (var index = 0; index <= maxNumberOfNodes; index++) {
-      setTimeout(addNode(index), index * timeBetweenInsertions);
+    for (var index = 1; index <= maxNumberOfNodes; index++) {
+      setTimeout(function(){
+        addNode(index)
+      }
+      , index * timeBetweenInsertions);
     }
   }
 }
