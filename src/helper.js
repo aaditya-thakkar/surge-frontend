@@ -10,19 +10,21 @@ module.exports = {
   }),
 
   // returns geo distance query object
-  buildRequestObject: function(long, lat) {
+  buildRequestObject: function(top_left, bottom_right) {
     return ({
       type: config.appbase.type,
       body: {
         "query": {
-          "filtered": {
-            "query": {
-              "match_all": {}
+          "bool" : {
+            "must" : {
+              "match_all" : {}
             },
-            "filter": {
-              "geo_distance": {
-                "distance": "10km",
-                "location": [long, lat]
+            "filter" : {
+              "geo_bounding_box" : {
+                "location-field" : {
+                  "top_left" : top_left,
+                  "bottom_right" : bottom_right
+                }
               }
             }
           }
