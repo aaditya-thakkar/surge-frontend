@@ -4,8 +4,8 @@ var config = require('../config.json');
 var helper = require('./helper.js');
 var HeatmapCreator = require('./HeatmapCreator.js');
 var MapController = require('./MapController.js');
-var Simulator = require('../backend/simulator.js');
-
+var Simulator = require('../simulator/index.js');
+var markersArray = [];
 // Latitude and Longitude for San Francisco center
 var mapCenterLocation = new google.maps.LatLng(37.7441, -122.4450);
 var gridCenterPointsArray = [];
@@ -18,7 +18,7 @@ var Map = React.createClass({
         center: mapCenterLocation,
         zoom: 14,
         streetViewControl: true,
-        mapTypeId: google.maps.MapTypeId.HYBRID,
+        mapTypeId: google.maps.MapTypeId.ROADMAP,
         scaleControl: true
       },
       map: null,
@@ -95,9 +95,7 @@ var Map = React.createClass({
     showButton.value = "Start Simulation";
     showButton.className = "btn btn-primary";
     showButton.onclick = function(){
-      var win = window.open('simulation.html', '_blank');
       Simulator.dataGenerator();
-      win.focus();
     };
     document.getElementById("floating-panel").appendChild(showButton);
   },
