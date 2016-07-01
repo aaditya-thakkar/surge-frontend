@@ -18,12 +18,12 @@ module.exports = {
 
     // generates each grid's coordinates
     for (var latitude = bottomLat; latitude <= topLat+3*llOffset; latitude += llOffset) {
-      if(latitude>=topLat+llOffset){
-        leftLong+=2*llOffset;
-        rightLong-=llOffset;
+      if(latitude >= topLat + llOffset){
+        leftLong += 2*llOffset;
+        rightLong -= llOffset;
       }
       for(var longitude = leftLong+llOffset; longitude<= rightLong; longitude += llOffset) {
-        var upLeftCoord= {
+        var upLeftCoord = {
           lat: latitude + llOffset/2,
           lng: longitude - llOffset/2
         };
