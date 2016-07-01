@@ -93,7 +93,7 @@ module.exports = {
   }
 };
 
-},{"../config.json":3,"../src/helper.js":276,"./locationGenerator":1,"appbase-js":14}],3:[function(require,module,exports){
+},{"../config.json":3,"../src/helper.js":275,"./locationGenerator":1,"appbase-js":14}],3:[function(require,module,exports){
 module.exports={
   "appbase": {
     "appname": "map_demo",
@@ -34776,114 +34776,6 @@ var ReactDOM = require('react-dom');
 var config = require('../config.json');
 var helper = require('./helper.js');
 var HeatmapCreator = require('./HeatmapCreator.js');
-
-// Latitude and Longitude for San Francisco center
-var mapCenterLocation = new google.maps.LatLng(37.7441, -122.4450);
-var markersArray = [];
-var gridCenterPointsArray = [];
-var appbaseRef = helper.appbaseRef;
-var MapSim = React.createClass({
-  displayName: 'MapSim',
-
-  getInitialState: function () {
-    return {
-      // initial map parameters
-      mapParams: {
-        center: mapCenterLocation,
-        zoom: 14,
-        streetViewControl: true,
-        mapTypeId: google.maps.MapTypeId.HYBRID,
-        scaleControl: true
-      },
-      map: null,
-      // array to store the center locations of each grid the map is divided into
-      gridCenterPoints: []
-    };
-  },
-
-  // stream the updates happening in the grid, i.e new demander comes, new suppiler comes, etc. and according to new surge price change the color of grid heatmap
-  callRealtimeGridUpdates: function () {
-    var self = this;
-    var requestMarkerObject = helper.buildRequestMarkerObject();
-
-    // appbase search stream query
-    appbaseRef.searchStream(requestMarkerObject).on('data', function (stream) {
-      var marker = null;
-      marker = new google.maps.Marker({
-        position: new google.maps.LatLng(stream._source["location-field"][1], stream._source["location-field"][0]),
-        label: "D"
-      });
-      if (stream._deleted == true) {
-        markersArray[stream._source["location-field"]].setMap(null);
-        console.log("deleted");
-        markersArray.splice(stream._source["location-field"], 1);
-      } else {
-        marker.setMap(self.state.map);
-        console.log("added");
-        markersArray[stream._source["location-field"]] = marker;
-      }
-    }).on('error', function (stream) {
-      console.log(stream);
-    });
-  },
-
-  callStaticUpdates: function (map, gridCenterPointsArray) {
-    var requestMarkerObject = helper.buildRequestMarkerObject();
-    appbaseRef.search(requestMarkerObject).on('data', function (stream) {
-      console.log(stream.hits.total);
-      for (var h = 0; h < stream.hits.total; h++) {
-        marker = new google.maps.Marker({
-          position: new google.maps.LatLng(stream.hits.hits[h]._source["location-field"][1], stream.hits.hits[h]._source["location-field"][0]),
-          label: "D",
-          map: map
-        });
-        console.log("setting demader");
-      }
-    }).on('error', function (stream) {
-      console.log(stream);
-    });
-  },
-
-  componentDidMount: function () {
-    var self = this;
-    // push the map on the DOM
-    var map = new google.maps.Map(document.getElementById('app'), this.state.mapParams);
-    this.setState({
-      map: map
-    });
-    // triggers gridcreator, labelcreator, heatmapcreator when the map is in idle state
-    google.maps.event.addListenerOnce(map, 'idle', function () {
-      gridCenterPointsArray = HeatmapCreator.createGridLines(map.getBounds(), 0.5);
-      self.callStaticUpdates(map, gridCenterPointsArray);
-      for (var index = 0; index < gridCenterPointsArray.length; index++) {
-        gridCenterPointsArray[index].cell.setMap(self.state.map);
-      }
-      // sets the state of grid array and in the callback, calls for the updates heppening in the grids
-      self.setState({
-        gridCenterPoints: gridCenterPointsArray
-      }, function () {
-        self.callRealtimeGridUpdates();
-      });
-    });
-  },
-
-  render: function () {
-    return React.createElement(
-      'div',
-      null,
-      'Error Displaying the map!'
-    );
-  }
-});
-
-module.exports = MapSim;
-
-},{"../config.json":3,"./HeatmapCreator.js":272,"./helper.js":276,"react":271,"react-dom":104}],274:[function(require,module,exports){
-var React = require('react');
-var ReactDOM = require('react-dom');
-var config = require('../config.json');
-var helper = require('./helper.js');
-var HeatmapCreator = require('./HeatmapCreator.js');
 var MapController = require('./MapController.js');
 var Simulator = require('../backend/simulator.js');
 
@@ -34949,6 +34841,19 @@ var Map = React.createClass({
       gridCenterPoints = MapController.findSurgePrice(stream, gridCenterPoints, index);
       console.log(gridCenterPoints);
       self.updateCellColors(gridCenterPoints, index);
+      var marker = new google.maps.Marker({
+        position: new google.maps.LatLng(stream._source["location-field"][1], stream._source["location-field"][0]),
+        label: "D"
+      });
+      if (stream._deleted == true) {
+        markersArray[stream._source["location-field"]].setMap(null);
+        console.log("deleted");
+        markersArray.splice(stream._source["location-field"], 1);
+      } else {
+        marker.setMap(self.state.map);
+        console.log("added");
+        markersArray[stream._source["location-field"]] = marker;
+      }
     }).on('error', function (stream) {
       console.log(stream);
     });
@@ -35028,7 +34933,7 @@ var Map = React.createClass({
 
 module.exports = Map;
 
-},{"../backend/simulator.js":2,"../config.json":3,"./HeatmapCreator.js":272,"./MapController.js":275,"./helper.js":276,"react":271,"react-dom":104}],275:[function(require,module,exports){
+},{"../backend/simulator.js":2,"../config.json":3,"./HeatmapCreator.js":272,"./MapController.js":274,"./helper.js":275,"react":271,"react-dom":104}],274:[function(require,module,exports){
 module.exports = {
 
   findSurgePrice: function (stream, gridCenterPoints, index) {
@@ -35046,7 +34951,7 @@ module.exports = {
 
 };
 
-},{}],276:[function(require,module,exports){
+},{}],275:[function(require,module,exports){
 var Appbase = require('../node_modules/appbase-js');
 var config = require('../config.json');
 
@@ -35094,14 +34999,13 @@ module.exports = {
   }
 };
 
-},{"../config.json":3,"../node_modules/appbase-js":14}],277:[function(require,module,exports){
+},{"../config.json":3,"../node_modules/appbase-js":14}],276:[function(require,module,exports){
 var ReactDOM = require('react-dom');
 var React = require('react');
 // mixin to improve the performance
 var PureRenderMixin = require('react-addons-pure-render-mixin');
 
 var Map = require('./Map');
-var MapSim = require('./Map-simulation');
 React.createClass({
   mixins: [PureRenderMixin],
 
@@ -35113,11 +35017,6 @@ React.createClass({
     );
   }
 });
-//console.log(window.location.pathname);
-if (window.location.pathname == "/surge-frontend/index.html") {
-  ReactDOM.render(React.createElement(Map, null), document.getElementById('app'));
-} else if (window.location.pathname == "/surge-frontend/simulation.html") {
-  ReactDOM.render(React.createElement(MapSim, null), document.getElementById('app'));
-}
+ReactDOM.render(React.createElement(Map, null), document.getElementById('app'));
 
-},{"./Map":274,"./Map-simulation":273,"react":271,"react-addons-pure-render-mixin":103,"react-dom":104}]},{},[277]);
+},{"./Map":273,"react":271,"react-addons-pure-render-mixin":103,"react-dom":104}]},{},[276]);

@@ -69,6 +69,20 @@ var Map = React.createClass({
       gridCenterPoints = MapController.findSurgePrice(stream, gridCenterPoints, index);
       console.log(gridCenterPoints);
       self.updateCellColors(gridCenterPoints, index);
+      var marker = new google.maps.Marker({
+        position: new google.maps.LatLng(stream._source["location-field"][1], stream._source["location-field"][0]),
+        label: "D",
+      });
+      if (stream._deleted == true){
+        markersArray[stream._source["location-field"]].setMap(null);
+        console.log("deleted");
+        markersArray.splice(stream._source["location-field"],1);
+      }
+      else {
+        marker.setMap(self.state.map);
+        console.log("added");
+        markersArray[stream._source["location-field"]]=marker;
+      }
     }).on('error', function(stream) {
       console.log(stream)
     });
