@@ -54,8 +54,6 @@ module.exports = {
           lowLeftCoord: lowLeftCoord,
           lowRightCoord: lowRightCoord,
           surgePrice: 0.0,
-          numberOfDemanders: 0,
-          numberOfSuppliers: 0,
           color: color,
           opacity: opacity,
           cell: this.createCell(opacity, color, upLeftCoord, upRightCoord, lowRightCoord, lowLeftCoord)

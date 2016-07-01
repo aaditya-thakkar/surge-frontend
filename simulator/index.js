@@ -21,7 +21,7 @@ function addNode(index) {
   appbaseRef.index(requestObject).on('data', function(response) {
     console.log(" Inserted ", index);
      setTimeout(deleteNode(index), (index + maxNumberOfNodes) * timeBetweenInsertions);
-     setTimeout(addNode(index), (index + maxNumberOfNodes) * timeBetweenInsertions);
+     setTimeout(addNode(index), (index + 2*maxNumberOfNodes) * timeBetweenInsertions);
   }).on('error', function(error) {
     console.log(error);
   });
