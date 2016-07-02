@@ -32,6 +32,7 @@ gulp.task('connect', function () {
 gulp.task('watch',['connect'], function() {
 	gulp.watch('src/*.js', ['browserify']);
 	gulp.watch('src/*.jsx', ['browserify']);
+	gulp.watch('simulator/*.js', ['browserify']);
 });
 
 gulp.task('default', ['watch','browserify']);

@@ -34596,9 +34596,17 @@ var config = require('../config.json');
 var helper = require('../src/helper.js');
 var appbaseRef = helper.appbaseRef;
 
-var maxNumberOfNodes = 10;
+var maxNumberOfNodes = 100;
 var timeBetweenInsertions = 1000;
 
+function makeid() {
+  var text = "";
+  var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+
+  for (var i = 0; i < 7; i++) text += possible.charAt(Math.floor(Math.random() * possible.length));
+
+  return text;
+}
 // enter demander's location into appbase table
 function addNode(index) {
   var latLongData = {
@@ -34606,13 +34614,13 @@ function addNode(index) {
   };
   var requestObject = {
     type: config.appbase.type,
-    id: index.toString(),
+    id: makeid(),
     body: latLongData
   };
   // appbase index query
   appbaseRef.index(requestObject).on('data', function (response) {
-    console.log(" Inserted ", index);
-    setTimeout(deleteNode(index), (index + maxNumberOfNodes) * timeBetweenInsertions);
+    console.log(" Inserted ", response._id);
+    setTimeout(deleteNode(response._id), (index + maxNumberOfNodes) * timeBetweenInsertions);
     setTimeout(addNode(index), (index + 2 * maxNumberOfNodes) * timeBetweenInsertions);
   }).on('error', function (error) {
     console.log(error);
