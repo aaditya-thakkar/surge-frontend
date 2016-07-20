@@ -57,15 +57,14 @@ var Map = React.createClass({
         self.updateCellColors(gridCenterPointsArray, index);
         marker = new google.maps.Marker({
           position: new google.maps.LatLng(stream.hits.hits[h]._source["location-field"][1], stream.hits.hits[h]._source["location-field"][0]),
-          label: " ",
+          icon: 'http://maps.google.com/mapfiles/ms/icons/blue-dot.png',
           map: map
         });
       }
       gridCenterPointsArray[index].cell.setMap(self.state.map);
-      // console.log("calling realtime");
       self.callRealtimeGridUpdates(index);
     }).on('error', function(stream) {
-      // console.log(stream)
+         console.log(stream)
     });
   },
 
@@ -79,60 +78,53 @@ var Map = React.createClass({
     // appbase search stream query
     appbaseRef.searchStream(requestObject).on('data', function(stream) {
       gridCenterPoints = MapController.findSurgePrice(stream, gridCenterPoints, index);
-      // console.log(gridCenterPoints);
       self.updateCellColors(gridCenterPoints, index);
       var marker = new google.maps.Marker({
         position: new google.maps.LatLng(stream._source["location-field"][1], stream._source["location-field"][0]),
-        label: " ",
+        icon: 'http://maps.google.com/mapfiles/ms/icons/blue-dot.png'
       });
       if (stream._deleted == true){
         markersArray[stream._source["location-field"]].setMap(null);
-        // console.log("deleted");
         markersArray.splice(stream._source["location-field"],1);
       }
       else {
         marker.setMap(self.state.map);
-        // console.log("added");
         markersArray[stream._source["location-field"]]=marker;
       }
     }).on('error', function(stream) {
-      // console.log(stream)
+         console.log(stream)
     });
   },
 
   updateCellColors: function(gridCenterPoints, index){
     // colors and labels according to the surge price measures
     if(gridCenterPoints[index].surgePrice < 1){
-      // console.log("surge <1");
       gridCenterPoints[index].color = "#00ffffff";
       gridCenterPoints[index].opacity = 0.0;
     }
     else if(gridCenterPoints[index].surgePrice < 2){
-      // console.log("surge < 2");
       gridCenterPoints[index].color = "#ec891d";
-      gridCenterPoints[index].opacity = 0.15;
+      gridCenterPoints[index].opacity = 0.50;
     }
     else if(gridCenterPoints[index].surgePrice < 3){
-      // console.log("surge <3");
       gridCenterPoints[index].color = "#ff0000";
-      gridCenterPoints[index].opacity = 0.15;
+      gridCenterPoints[index].opacity = 0.50;
     }
     else{
-      // console.log("surge <4");
       gridCenterPoints[index].color = "#4c0000";
-      gridCenterPoints[index].opacity = 0.15;
+      gridCenterPoints[index].opacity = 0.50;
     }
 
     gridCenterPoints[index].cell.setOptions({ fillColor:  gridCenterPoints[index].color});
     gridCenterPoints[index].cell.setOptions({ strokeColor:  gridCenterPoints[index].color});
-    gridCenterPoints[index].cell.setOptions({ strokeOpacity:  gridCenterPoints[index].opacity*0});
-    gridCenterPoints[index].cell.setOptions({ fillOpacity:  gridCenterPoints[index].opacity*4});
+    gridCenterPoints[index].cell.setOptions({ fillOpacity:  gridCenterPoints[index].opacity});
   },
 
   createShowSimulationButton: function() {
     var self = this;
     var showButton = document.createElement("input");
     showButton.type = "button";
+    showButton.style = "font-family:Arial";
     showButton.value = "Start Simulation";
     showButton.className = "btn btn-primary";
     showButton.onclick = function(){

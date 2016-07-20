@@ -4,8 +4,8 @@ var config = require('../config.json');
 var helper = require('../src/helper.js');
 var appbaseRef = helper.appbaseRef;
 
-var maxNumberOfNodes = 30;
-var timeBetweenInsertions = 1000;
+var maxNumberOfNodes = 20;
+var timeBetweenInsertions = 2000;
 
 
 function generateData(index) {

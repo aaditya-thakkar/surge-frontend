@@ -9,7 +9,7 @@ module.exports = {
     password: config.appbase.password
   }),
 
-  // returns geo distance query object
+  // returns geo bounding box query object
   buildRequestObject: function(top_left, bottom_right) {
     return ({
       type: config.appbase.type,
@@ -32,7 +32,7 @@ module.exports = {
       }
     });
   },
-
+  //returns object of all the historical markers
   buildRequestMarkerObject: function(){
     return ({
       type: config.appbase.type,

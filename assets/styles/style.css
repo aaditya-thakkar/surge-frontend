@@ -10,9 +10,8 @@ body {
   font-family: sans-serif;
 }
 #over_map {
-  background-color: #e1e1e1;
+  background-color: #fff2cc;
   padding: 10px;
-  border: 1px solid #ff0000;
   border-radius: 8px;
 }
 #app {
@@ -25,7 +24,7 @@ body {
   z-index: 5;
   padding: 5px;
   text-align: center;
-  font-family: 'Roboto','sans-serif';
+  font-family: 'Arial';
   line-height: 30px;
   padding-left: 10px;
 }
